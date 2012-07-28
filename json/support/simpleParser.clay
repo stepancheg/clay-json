@@ -1,8 +1,8 @@
 import test.*;
 import maybe.*;
 
-import json.tokenStream.*;
-import json.misc.*;
+import json.support.tokenStream.*;
+import json.support.misc.*;
 
 
 

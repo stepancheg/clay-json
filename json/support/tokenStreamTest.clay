@@ -1,7 +1,7 @@
 import test.*;
 
-import json.tokenStream.*;
-import json.simpleParser.*;
+import json.support.tokenStream.*;
+import json.support.simpleParser.*;
 
 tokenStreamTestSuite() =
     TestSuite(

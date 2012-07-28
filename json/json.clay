@@ -2,8 +2,8 @@ import vectors.*;
 import maybe.*;
 import numbers.parser.*;
 
-import json.tokenStream.*;
-import json.simpleParser.*;
+import json.support.tokenStream.*;
+import json.support.simpleParser.*;
 import json.escape.*;
 
 /// model

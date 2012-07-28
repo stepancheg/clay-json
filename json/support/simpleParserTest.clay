@@ -1,6 +1,6 @@
 import test.*;
 
-import json.simpleParser.*;
+import json.support.simpleParser.*;
 
 simpleParserTestSuite() =
     TestSuite(

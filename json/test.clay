@@ -1,7 +1,7 @@
 import test.*;
 
-import json.tokenStreamTest.*;
-import json.simpleParserTest.*;
+import json.support.tokenStreamTest.*;
+import json.support.simpleParserTest.*;
 import json.jsonTest.*;
 import json.escapeTest.*;
 

@@ -1,4 +1,4 @@
-import json.misc.*;
+import json.support.misc.*;
 
 
 quoteJson(rawString) {
