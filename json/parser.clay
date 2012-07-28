@@ -33,6 +33,13 @@ private keywordTokenParser(tokenType, keyword) = modify(t => JsonToken(tokenType
 private var digit19Parser = condition(c => ((c >= '1') and (c <= '9')));
 private var digitParser = condition(c => ((c >= '0') and (c <= '9')));
 
+private var hexdigitValueParser =
+    choice(
+        modify(c => UInt(c) - UInt('0'), condition(c => (c >= '0') and (c <= '9'))),
+        modify(c => UInt(c) - UInt('a'), condition(c => (c >= 'a') and (c <= 'z'))),
+        modify(c => UInt(c) - UInt('A'), condition(c => (c >= 'A') and (c <= 'Z'))),
+    );
+
 private define joinBackImpl;
 
 overload joinBackImpl(r, s: String) {
@@ -89,14 +96,46 @@ private var numberTokenParser =
         ]
     );
 
+unescapeCharParser(escape, value) =
+    modify(c -> value, condition(c => c == escape));
+
+overload bitor(d1, d2, d3, d4) =
+    bitor(bitor(d1, d2), bitor(d3, d4));
+
+private makeU(d1, d2, d3, d4) =
+    bitor(bitshl(d1, 12), bitshl(d2, 8), bitshl(d3, 4), bitshl(d4, 0));
+
+private var stringCharParser =
+    choice(
+        modify(t -> t.1,
+            [
+                condition(c -> c == '\\'),
+                choice(
+                    condition(c -> c == '"' or c == '\\'),
+                    unescapeCharParser('n', '\n'),
+                    unescapeCharParser('r', '\r'),
+                    unescapeCharParser('t', '\t'),
+                    unescapeCharParser('f', '\x0c'),
+                    unescapeCharParser('b', '\x08'),
+                    modify(t -> Char(makeU(t.1, t.2, t.3, t.4)), [
+                        condition(c -> c == 'u'),
+                        hexdigitValueParser,
+                        hexdigitValueParser,
+                        hexdigitValueParser,
+                        hexdigitValueParser,
+                    ]),
+                ),
+            ]
+        ),
+        condition(c -> c != '"'),
+    );
+
 private var stringTokenParser =
     modify(
-        t -> JsonToken(STRING_TYPE, joinBack(t)),
+        t -> JsonToken(STRING_TYPE, t.1),
         [
             '"',
-            zeroOrMore(
-                condition(c -> c != '"'),
-            ),
+            zeroOrMore(stringCharParser),
             '"',
         ]
     );
@@ -136,7 +175,7 @@ private var jsonCombinators = Combinators[Type(iterator(Vector[JsonToken]()))]()
 
 private tokenTypeParser(tokenType) = jsonCombinators.condition(t => t.type == tokenType);
 
-private var stringValueParser  = jsonCombinators.modify(t -> unquoteJson(t.text), tokenTypeParser(STRING_TYPE));
+private var stringValueParser = jsonCombinators.modify(t -> t.text, tokenTypeParser(STRING_TYPE));
 
 private var nullParser = jsonCombinators.modify(t -> JsonNull(), tokenTypeParser(NULL_TYPE));
 private var trueParser = jsonCombinators.modify(t -> JsonBoolean(true), tokenTypeParser(TRUE_TYPE));

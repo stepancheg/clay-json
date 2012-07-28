@@ -5,7 +5,14 @@ import json.escape.*;
 escapeTestSuite() =
     TestSuite(
         "escape", array(
-            TestCase("escape", test => {
+            TestCase("quoteJson", test => {
+                expectEqual(test, "empty", "\"\"", quoteJson(""));
+                expectEqual(test, "simple", """"ab"""", quoteJson("ab"));
+                expectEqual(test, "backslash", "\"\\\\\"", quoteJson("\\"));
+                expectEqual(test, "quote", "\"\\\"\"", quoteJson("\""));
+                expectEqual(test, "newline", "\"\\n\"", quoteJson("\n"));
+                expectEqual(test, "tab", "\"\\t\"", quoteJson("\t"));
+                expectEqual(test, "\\1", "\"\\u0001\"", quoteJson("\x01"));
             }),
         ),
     );

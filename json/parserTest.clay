@@ -32,10 +32,30 @@ parserTestSuite() =
                 expectTrue(test, "isNumber", isNumber(minusSeventeen));
                 expectEqual(test, "== -17", -17, getIntValue(minusSeventeen));
             }),
-            TestCase("parse string", test => {
+            TestCase("parse string simple", test => {
                 var s = parseJson("\"hi\"");
                 expectTrue(test, "isString", isString(s));
                 expectEqual(test, "==", "hi", getStringValue(s));
+            }),
+            TestCase("parse string quote", test => {
+                var s = parseJson("\"\\\"\"");
+                expectTrue(test, "isString", isString(s));
+                expectEqual(test, "==", "\"", getStringValue(s));
+            }),
+            TestCase("parse string backslash", test => {
+                var s = parseJson("\"\\\\\"");
+                expectTrue(test, "isString", isString(s));
+                expectEqual(test, "==", "\\", getStringValue(s));
+            }),
+            TestCase("parse string newline", test => {
+                var s = parseJson("\"\\n\"");
+                expectTrue(test, "isString", isString(s));
+                expectEqual(test, "==", "\n", getStringValue(s));
+            }),
+            TestCase("parse string u escapes", test => {
+                var s = parseJson("\"\\u0001\\u0045\"");
+                expectTrue(test, "isString", isString(s));
+                expectEqual(test, "==", "\x01\x45", getStringValue(s));
             }),
             TestCase("parse object 0", test => {
                 var o = parseJson("{}");

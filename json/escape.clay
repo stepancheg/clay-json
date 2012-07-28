@@ -1,12 +1,45 @@
+import vectors.generic.*;
+
 import json.support.misc.*;
 
 
-quoteJson(rawString) {
-    // TODO: escape
-    return "\"" + rawString + "\"";
+private hexDigit(n): Char {
+    if (n <= 9) {
+        return Char(UInt32('0') + n);
+    } else {
+        return Char(UInt32('a') + (n - 10));
+    }
 }
 
-unquoteJson(jsonString) {
-    // TODO: validate, unescape
-    return substr(jsonString, 1, size(jsonString) - 2);
+quoteJson(rawString) {
+    var r = String();
+    vectorRequestCapacity(r, size(rawString) + 2);
+    push(r, '"');
+    alias CharType = Type(rawString[0]);
+    for (c in rawString) {
+        if (c == '\n') {
+            push(r, "\\n");
+        } else if (c == '\r') {
+            push(r, "\\r");
+        } else if (c == '\t') {
+            push(r, "\\t");
+        } else if (c == '\f') {
+            push(r, "\\f");
+        } else if (c == CharType(8) /*\b*/) {
+            push(r, "\\b");
+        } else if (c == '\\' or c == '\"') {
+            push(r, '\\');
+            push(r, c);
+        } else if (c < CharType(0x20)) {
+            push(r, "\\u");
+            ..for (n in ..staticIntegers(static 4)) {
+                push(r, hexDigit(bitand(bitshr(UInt32(c), (3 - unwrapStatic(n)) * 4), 0x7)));
+            }
+        } else {
+            push(r, c);
+        }
+    }
+    push(r, '"');
+    return r;
 }
+
