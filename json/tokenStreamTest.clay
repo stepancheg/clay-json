@@ -1,0 +1,26 @@
+import test.*;
+
+import json.tokenStream.*;
+import json.simpleParser.*;
+
+tokenStreamTestSuite() =
+    TestSuite(
+        "CollectingTokenStream", array(
+            TestCase("original advances", test => {
+                var p1 = simpleParser("hello world");
+                var coll = String();
+                var p2 = CollectingTokenStream(&p1, &coll);
+                expectTrue(test, "lookingAt", lookingAtToken(p2, 'h'));
+                consumeIfLookingAtToken(p2, 'h');
+                consumeIfLookingAtToken(p2, '2');
+                consumeIfLookingAtToken(p2, 'e');
+                expectEqual(test, "collected", "he", coll);
+                expectTrue(test, "original advanced", lookingAtToken(p1, 'l'));
+            }),
+        ),
+    );
+
+tokenStreamTestMain() = testMain(tokenStreamTestSuite());
+
+main() = tokenStreamTestMain();
+

@@ -1,0 +1,7 @@
+substr(string, offset, length) {
+    var r = String();
+    for (i in range(offset, offset + length)) {
+        r += string[i];
+    }
+    return r;
+}

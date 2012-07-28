@@ -1,0 +1,12 @@
+import json.misc.*;
+
+
+quoteJson(rawString) {
+    // TODO: escape
+    return "\"" + rawString + "\"";
+}
+
+unquoteJson(jsonString) {
+    // TODO: validate, unescape
+    return substr(jsonString, 1, size(jsonString) - 2);
+}

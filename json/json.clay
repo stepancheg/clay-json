@@ -1,0 +1,298 @@
+import vectors.*;
+import maybe.*;
+import numbers.parser.*;
+
+import json.tokenStream.*;
+import json.simpleParser.*;
+import json.escape.*;
+
+/// model
+
+record JsonArray (
+    // tuple is work around https://groups.google.com/d/topic/clay-language/vOYBi7jIbb4/discussion
+    data: Vector[Tuple[JsonValue]]
+);
+
+alias JsonObjectKeyValue = Tuple[String, JsonValue];
+
+record JsonObject (
+    data: Vector[JsonObjectKeyValue]
+);
+
+record JsonNull (
+);
+
+record JsonNumber (
+    value: String
+);
+
+record JsonString (
+    // unquoted
+    value: String
+);
+
+record JsonBoolean (
+    value: Bool
+);
+
+variant JsonValue (JsonArray, JsonObject, JsonNull, JsonNumber, JsonString, JsonBoolean);
+
+isArray(value) = variantIs?(value, JsonArray);
+isObject(value) = variantIs?(value, JsonObject);
+isNull(value) = variantIs?(value, JsonNull);
+isNumber(value) = variantIs?(value, JsonNumber);
+isString(value) = variantIs?(value, JsonString);
+isBoolean(value) = variantIs?(value, JsonBoolean);
+
+getArray(value) = variantAs(value, JsonArray);
+getObject(value) = variantAs(value, JsonObject);
+getNull(value) = variantAs(value, JsonNull);
+getNumber(value) = variantAs(value, JsonNumber);
+getString(value) = variantAs(value, JsonString);
+getBoolean(value) = variantAs(value, JsonBoolean);
+
+getBooleanValue(value) = getBoolean(value).value;
+getIntValue(value) = parseInt32(getNumber(value).value);
+getStringValue(value) = getString(value).value;
+
+overload push(array: JsonArray, value) =
+    ..push(array.data, value);
+
+overload push(object: JsonObject, value) =
+    ..push(object.data, value);
+
+overload index(array: JsonArray, i): JsonValue =
+    index(array.data, i).0;
+
+overload index(object: JsonObject, k): JsonValue {
+    for (t in object.data) {
+        if (t.0 == k)
+            return t.1;
+    }
+    error("no key " + k);
+    throw Error();
+}
+
+[I | Integer?(I)]
+overload index(array: JsonValue, i: I): JsonValue =
+    index(getArray(array), i);
+
+[K | String?(K)]
+overload index(object: JsonValue, k: K): JsonValue =
+    index(getObject(object), k);
+
+overload size(array: JsonArray) = size(array.data);
+overload size(object: JsonObject) = size(object.data);
+overload size(string: JsonString) = size(string.value);
+
+overload size(value: JsonValue) {
+    if (isArray(value))
+        return size(getArray(value));
+    else if (isObject(value))
+        return size(getObject(value));
+    else if (isString(value))
+        return size(getString(value));
+    else {
+        error("value has no size");
+        throw Error();
+    }
+}
+
+
+/// parser
+
+private enum JsonTokenType (
+    OPENING_BRACE,
+    CLOSING_BRACE,
+    OPENING_BRACKET,
+    CLOSING_BRACKET,
+    COMMA,
+    COLON,
+    NUMBER,
+    STRING,
+    TRUE,
+    FALSE,
+    NULL,
+);
+
+private record JsonToken (
+    type: JsonTokenType,
+    text: String,
+);
+
+overload tokenDebug(token: JsonToken) =
+    enumName(token.type);
+
+private record JsonTokenizerState[S] (
+    simpleParserState: SimpleParserState[S],
+    fetchedNext: Maybe[JsonToken],
+);
+
+jsonTokenizer(input) =
+    JsonTokenizerState(simpleParser(input), nothing(JsonToken));
+
+private consumeJsonNumber(parser) {
+    var r = String();
+    var parser1 = CollectingTokenStream(&parser, &r);
+    consumeIfLookingAtToken(parser1, '-');
+    if (consumeIfLookingAtToken(parser1, '0')) {
+    } else {
+        consumeTokenAnyOf(parser1, '1', '2', '3', '4', '5', '6', '7', '8', '9');
+        consumeTokens(parser1, '0', '1', '2', '3', '4', '5', '6', '7', '8', '9');
+    }
+    // TODO
+    return r;
+}
+
+private consumeJsonString(parser) {
+    var r = String();
+    var parser1 = CollectingTokenStream(&parser, &r);
+    consumeToken(parser1, '"');
+    while (not lookingAtToken(parser1, '"')) {
+        consumeToken(parser1);
+    }
+    consumeToken(parser1, '"');
+    return r;
+}
+
+[S]
+private fetchNext(state: JsonTokenizerState[S]) {
+    if (just?(state.fetchedNext))
+        return;
+    consumeSpaces(state.simpleParserState);
+    if (lookingAtEof(state.simpleParserState)) {
+        state.fetchedNext = nothing(JsonToken);
+        return;
+    }
+    if (lookingAtChar(state.simpleParserState, '{')) {
+        state.fetchedNext = Maybe(JsonToken(OPENING_BRACE, consumeCharAsString(state.simpleParserState)));
+    } else if (lookingAtChar(state.simpleParserState, '}')) {
+        state.fetchedNext = Maybe(JsonToken(CLOSING_BRACE, consumeCharAsString(state.simpleParserState)));
+    } else if (lookingAtChar(state.simpleParserState, '[')) {
+        state.fetchedNext = Maybe(JsonToken(OPENING_BRACKET, consumeCharAsString(state.simpleParserState)));
+    } else if (lookingAtChar(state.simpleParserState, ']')) {
+        state.fetchedNext = Maybe(JsonToken(CLOSING_BRACKET, consumeCharAsString(state.simpleParserState)));
+    } else if (lookingAtChar(state.simpleParserState, ',')) {
+        state.fetchedNext = Maybe(JsonToken(COMMA, String(consumeChar(state.simpleParserState))));
+    } else if (lookingAtChar(state.simpleParserState, ':')) {
+        state.fetchedNext = Maybe(JsonToken(COLON, String(consumeChar(state.simpleParserState))));
+    } else if (lookingAtString(state.simpleParserState, "null")) {
+        state.fetchedNext = Maybe(JsonToken(NULL, consumeString(state.simpleParserState, "null")));
+    } else if (lookingAtString(state.simpleParserState, "true")) {
+        state.fetchedNext = Maybe(JsonToken(TRUE, consumeString(state.simpleParserState, "true")));
+    } else if (lookingAtString(state.simpleParserState, "false")) {
+        state.fetchedNext = Maybe(JsonToken(FALSE, consumeString(state.simpleParserState, "false")));
+    } else if (lookingAtChars(state.simpleParserState, '-', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9')) {
+        state.fetchedNext = Maybe(JsonToken(NUMBER, consumeJsonNumber(state.simpleParserState)));
+    } else if (lookingAtChar(state.simpleParserState, '"')) {
+        state.fetchedNext = Maybe(JsonToken(STRING, consumeJsonString(state.simpleParserState)));
+    } else {
+        error("unknown next char");
+    }
+}
+
+[S]
+overload TokenStream?(static JsonTokenizerState[S]) = true;
+
+[S]
+overload lookahead?(stream: JsonTokenizerState[S]) {
+    fetchNext(stream);
+    return stream.fetchedNext;
+}
+
+[S]
+overload advance(stream: JsonTokenizerState[S]) {
+    checkNotEof(stream);
+    stream.fetchedNext = nothing(JsonToken);
+}
+
+
+private lookingAtTokenType(stream, tokenType) =
+    lookingAt(stream, token -> token.type == tokenType);
+
+private consumeTokenType(stream, tokenType) {
+    consume(stream, token -> token.type == tokenType);
+}
+
+private parseJsonArray(tokenizer): JsonArray {
+    var r = JsonArray();
+    consumeTokenType(tokenizer, OPENING_BRACKET);
+    if (not lookingAtTokenType(tokenizer, CLOSING_BRACKET)) {
+        push(r, [parseJsonValue(tokenizer)]);
+    }
+    while (not lookingAtTokenType(tokenizer, CLOSING_BRACKET)) {
+        consumeTokenType(tokenizer, COMMA);
+        push(r, [parseJsonValue(tokenizer)]);
+    }
+    consumeTokenType(tokenizer, CLOSING_BRACKET);
+    return r;
+}
+
+private parseJsonObjectKeyValue(tokenizer): JsonObjectKeyValue {
+    var key = parseJsonString(tokenizer).value;
+    consumeTokenType(tokenizer, COLON);
+    var value = parseJsonValue(tokenizer);
+    return JsonObjectKeyValue(key, value);
+}
+
+private parseJsonObject(tokenizer): JsonObject {
+    var r = JsonObject();
+    consumeTokenType(tokenizer, OPENING_BRACE);
+    if (not lookingAtTokenType(tokenizer, CLOSING_BRACE)) {
+        push(r, parseJsonObjectKeyValue(tokenizer));
+    }
+    while (lookingAtTokenType(tokenizer, COMMA)) {
+        consumeTokenType(tokenizer, COMMA);
+        push(r, parseJsonObjectKeyValue(tokenizer));
+    }
+    consumeTokenType(tokenizer, CLOSING_BRACE);
+    return r;
+}
+
+private parseJsonString(tokenizer): JsonString {
+    var r = JsonString(unquoteJson(lookahead(tokenizer).text));
+    consumeToken(tokenizer);
+    return r;
+}
+
+private parseJsonValue(tokenizer): JsonValue {
+    if (lookingAtTokenType(tokenizer, NULL)) {
+        var r = JsonValue(JsonNull());
+        consumeToken(tokenizer);
+        return r;
+    } else if (lookingAtTokenType(tokenizer, TRUE)) {
+        var r = JsonValue(JsonBoolean(true));
+        consumeToken(tokenizer);
+        return r;
+    } else if (lookingAtTokenType(tokenizer, FALSE)) {
+        var r = JsonValue(JsonBoolean(false));
+        consumeToken(tokenizer);
+        return r;
+    } else if (lookingAtTokenType(tokenizer, NUMBER)) {
+        var r = JsonValue(JsonNumber(lookahead(tokenizer).text));
+        consumeToken(tokenizer);
+        return r;
+    } else if (lookingAtTokenType(tokenizer, STRING)) {
+        return JsonValue(parseJsonString(tokenizer));
+    } else if (lookingAtTokenType(tokenizer, OPENING_BRACE)) {
+        return JsonValue(parseJsonObject(tokenizer));
+    } else if (lookingAtTokenType(tokenizer, OPENING_BRACKET)) {
+        return JsonValue(parseJsonArray(tokenizer));
+    } else {
+        if (lookingAtEof(tokenizer)) {
+            error("unexpected eof");
+        } else {
+            error("unexpected token " + enumName(lookahead(tokenizer).type));
+        }
+        return JsonValue(JsonNull());
+    }
+}
+
+parseJson(jsonText): JsonValue {
+    var tokenizer = jsonTokenizer(jsonText);
+    var r = parseJsonValue(tokenizer);
+    if (not lookingAtEof(tokenizer))
+        error("expecting eof after reading a value");
+    return r;
+}
+

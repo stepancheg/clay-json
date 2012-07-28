@@ -1,0 +1,144 @@
+import maybe.*;
+import operators.*;
+
+
+private equalToAnyOf(..values) = input -> {
+    ..for(value in values) {
+        if (input == value)
+            return true;
+    }
+    return false;
+};
+
+private record DummyCollector ();
+overload push(collection: DummyCollector, item) {}
+
+
+tokenDebug(token) = String(token);
+
+
+[S]
+TokenStream?(S) = false;
+
+define lookahead?;
+define advance;
+
+[S | TokenStream?(S)]
+lookingAtEof(stream: S) =
+    nothing?(lookahead?(stream));
+
+[S | TokenStream?(S)]
+checkNotEof(stream: S) {
+    if (lookingAtEof(stream))
+        error("unexpected eof");
+}
+
+[S | TokenStream?(S)]
+lookahead(stream: S) =
+    require(lookahead?(stream));
+
+[S | TokenStream?(S)]
+lookingAt(stream: S, predicate) =
+    not lookingAtEof(stream) and predicate(lookahead(stream));
+
+[S | TokenStream?(S)]
+lookingAtToken(stream: S, expected) =
+    lookingAt(stream, token -> token == expected);
+
+[S | TokenStream?(S)]
+lookingAtTokens(stream: S, ..expecteds) =
+    lookingAt(stream, equalToAnyOf(..expecteds));
+
+[S | TokenStream?(S)]
+consume(stream: S, predicate) {
+    if (lookingAtEof(stream))
+        error("unexpected eof");
+    if (not predicate(lookahead(stream)))
+        error("unexpected token " + tokenDebug(lookahead(stream)));
+    return consumeToken(stream);
+}
+
+[S | TokenStream?(S)]
+consumeToken(stream: S) {
+    var r = lookahead(stream);
+    advance(stream);
+    return r;
+}
+
+[S | TokenStream?(S)]
+overload consumeToken(stream: S, token) =
+    consumeTokenAnyOf(stream, token);
+
+[S | TokenStream?(S)]
+consumeTokenAnyOf(stream: S, ..expecteds) =
+    consume(stream, equalToAnyOf(..expecteds));
+
+[S | TokenStream?(S)]
+consumeIfLookingAt(stream: S, predicate) {
+    if (lookingAt(stream, predicate)) {
+        consumeToken(stream);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+[S | TokenStream?(S)]
+consumeIfLookingAtToken(stream: S, token) =
+    consumeIfLookingAtTokenTo(stream, token, DummyCollector());
+
+[S | TokenStream?(S)]
+consumeIfLookingAtTokenTo(stream: S, token, collector) {
+    if (lookingAtToken(stream, token)) {
+        push(collector, consumeToken(stream, token));
+        return true;
+    } else {
+        return false;
+    }
+}
+
+
+[S | TokenStream?(S)]
+consumeTokens(stream: S, ..expecteds) {
+    consumeWhile(stream, equalToAnyOf(..expecteds));
+}
+
+[S | TokenStream?(S)]
+consumeTokensTo(stream: S, collector, ..expecteds) {
+    consumeWhileTo(stream, equalToAnyOf(expecteds), collector);
+}
+
+[S | TokenStream?(S)]
+consumeWhile(stream: S, predicate) {
+    while (lookingAt(stream, predicate)) {
+        consumeToken(stream);
+    }
+}
+
+
+
+
+record CollectingTokenStream[S, C] (
+    orig: Pointer[S],
+    collector: Pointer[C],
+);
+
+[S, C]
+overload TokenStream?(static CollectingTokenStream[S, C]) = true;
+
+[S, C]
+overload lookahead?(stream: CollectingTokenStream[S, C]) =
+    lookahead?(stream.orig^);
+
+[S, C]
+overload advance(stream: CollectingTokenStream[S, C]) {
+    if (not lookingAtEof(stream)) {
+        var token = consumeToken(stream.orig^);
+        push(stream.collector^, token);
+    } else {
+        // crash it
+        advance(stream.orig^);
+    }
+}
+
+

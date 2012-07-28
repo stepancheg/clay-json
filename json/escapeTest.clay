@@ -1,0 +1,17 @@
+import test.*;
+
+import json.escape.*;
+
+escapeTestSuite() =
+    TestSuite(
+        "escape", array(
+            TestCase("escape", test => {
+            }),
+        ),
+    );
+
+escapeTestMain() = testMain(escapeTestSuite());
+
+main() = escapeTestMain();
+
+

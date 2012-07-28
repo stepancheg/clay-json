@@ -1,0 +1,67 @@
+import test.*;
+import json.*;
+
+jsonTestSuite() =
+    TestSuite(
+        "json", array(
+            TestCase("parse null", test => {
+                var r = parseJson("null");
+                expectTrue(test, "isNull", isNull(r));
+            }),
+            TestCase("parse boolean", test => {
+                var t = parseJson("true");
+                var f = parseJson("false");
+                expectTrue(test, "isBoolean", isBoolean(t));
+                expectTrue(test, "isBoolean", isBoolean(f));
+                expectTrue(test, "getBoolean", getBooleanValue(t));
+                expectFalse(test, "getBoolean", getBooleanValue(f));
+            }),
+            TestCase("parse int", test => {
+                var seventeen = parseJson("17");
+                expectTrue(test, "isNumber", isNumber(seventeen));
+                expectEqual(test, "== 17", 17, getIntValue(seventeen));
+            }),
+            TestCase("parse string", test => {
+                var s = parseJson("\"hi\"");
+                expectTrue(test, "isString", isString(s));
+                expectEqual(test, "==", "hi", getStringValue(s));
+            }),
+            TestCase("parse object 0", test => {
+                var o = parseJson("{}");
+                expectTrue(test, "isObject", isObject(o));
+                expectEqual(test, "size", 0, size(o));
+            }),
+            TestCase("parse object 1", test => {
+                var o = parseJson("{ \"kkk\": 888 }");
+                expectTrue(test, "isObject", isObject(o));
+                expectEqual(test, "size", 1, size(o));
+                // TODO: check content
+            }),
+            TestCase("parse array 0", test => {
+                var a = parseJson("[]");
+                expectTrue(test, "isArray", isArray(a));
+                expectEqual(test, "size", 0, size(a));
+            }),
+            TestCase("parse array 1", test => {
+                var a = parseJson("[17]");
+                expectTrue(test, "isArray", isArray(a));
+                expectEqual(test, "size", 1, size(a));
+                expectTrue(test, "[0] is number", isNumber(getArray(a)[0]));
+                expectEqual(test, "[0]", 17, getIntValue(getArray(a)[0]));
+                expectEqual(test, "[0]", 17, getIntValue(a[0]));
+            }),
+            TestCase("parse array 2", test => {
+                var a = parseJson("[\"ab\", 12]");
+                expectTrue(test, "isArray", isArray(a));
+                expectEqual(test, "size", 2, size(a));
+                expectTrue(test, "[0] is string", isString(getArray(a)[0]));
+                expectEqual(test, "[0]", "ab", getStringValue(getArray(a)[0]));
+                expectTrue(test, "[1] is number", isNumber(getArray(a)[1]));
+                expectEqual(test, "[1]", 12, getIntValue(getArray(a)[1]));
+            }),
+        )
+    );
+
+jsonTestMain() = testMain(jsonTestSuite());
+
+main() = jsonTestMain();
