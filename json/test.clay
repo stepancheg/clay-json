@@ -1,14 +1,10 @@
 import test.*;
 
-import json.support.tokenStreamTest.*;
-import json.support.simpleParserTest.*;
-import json.jsonTest.*;
+import json.parserTest.*;
 import json.escapeTest.*;
 
 jsonTestMain() = testMain(
-    tokenStreamTestSuite(),
-    simpleParserTestSuite(),
-    jsonTestSuite(),
+    parserTestSuite(),
     escapeTestSuite(),
 );
 

@@ -1,11 +1,17 @@
 import test.*;
-import json.*;
 
-jsonTestSuite() =
+import json.*;
+import json.parser.*;
+
+parserTestSuite() =
     TestSuite(
-        "json", array(
+        "parser", array(
             TestCase("parse null", test => {
                 var r = parseJson("null");
+                expectTrue(test, "isNull", isNull(r));
+            }),
+            TestCase("leading and trailing spaces", test => {
+                var r = parseJson("\n\rnull \t");
                 expectTrue(test, "isNull", isNull(r));
             }),
             TestCase("parse boolean", test => {
@@ -20,6 +26,11 @@ jsonTestSuite() =
                 var seventeen = parseJson("17");
                 expectTrue(test, "isNumber", isNumber(seventeen));
                 expectEqual(test, "== 17", 17, getIntValue(seventeen));
+            }),
+            TestCase("parse signed int", test => {
+                var minusSeventeen = parseJson("-17");
+                expectTrue(test, "isNumber", isNumber(minusSeventeen));
+                expectEqual(test, "== -17", -17, getIntValue(minusSeventeen));
             }),
             TestCase("parse string", test => {
                 var s = parseJson("\"hi\"");
@@ -59,9 +70,10 @@ jsonTestSuite() =
                 expectTrue(test, "[1] is number", isNumber(getArray(a)[1]));
                 expectEqual(test, "[1]", 12, getIntValue(getArray(a)[1]));
             }),
-        )
+        ),
     );
 
-jsonTestMain() = testMain(jsonTestSuite());
+parserTestMain() = testMain(parserTestSuite());
 
-main() = jsonTestMain();
+main() = parserTestMain();
+

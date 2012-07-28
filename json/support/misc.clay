@@ -5,3 +5,11 @@ substr(string, offset, length) {
     }
     return r;
 }
+
+concat(..strings) {
+    var r = String();
+    ..for (s in strings) {
+        push(r, s);
+    }
+    return r;
+}

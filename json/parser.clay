@@ -1,0 +1,190 @@
+import maybe.*;
+import parsing.combinators.strings.*;
+import parsing.combinators.wrapper.*;
+import vectors.*;
+
+import json.*;
+import json.escape.*;
+import json.support.misc.*;
+
+// tokenizer
+
+private enum JsonTokenType (
+    OPENING_BRACE_TYPE,
+    CLOSING_BRACE_TYPE,
+    OPENING_BRACKET_TYPE,
+    CLOSING_BRACKET_TYPE,
+    COMMA_TYPE,
+    COLON_TYPE,
+    NUMBER_TYPE,
+    STRING_TYPE,
+    TRUE_TYPE,
+    FALSE_TYPE,
+    NULL_TYPE,
+);
+
+private record JsonToken (
+    type: JsonTokenType,
+    text: String,
+);
+
+private keywordTokenParser(tokenType, keyword) = modify(t => JsonToken(tokenType, String(t)), literalString(keyword));
+
+private var digit19Parser = condition(c => ((c >= '1') and (c <= '9')));
+private var digitParser = condition(c => ((c >= '0') and (c <= '9')));
+
+private define joinBackImpl;
+
+overload joinBackImpl(r, s: String) {
+    push(r, s);
+}
+
+overload joinBackImpl(r, c: Char) {
+    push(r, c);
+}
+
+// TODO: hack
+[T | Tuple?(T)]
+overload joinBackImpl(r, t: T) {
+    ..for (v in ..unpackTuple(t)) {
+        joinBackImpl(r, v);
+    }
+}
+
+[T]
+overload joinBackImpl(r, m: Maybe[T]) {
+    maybe(m, just -> ..joinBackImpl(r, just));
+}
+
+private joinBack(v) {
+    var r = String();
+    joinBackImpl(r, v);
+    return r;
+}
+
+private choiceJoin(..parsers) =
+    choice(..mapValues(p => modify(r => joinBack(r), p), ..parsers));
+
+
+private var numberTokenParser =
+    modify(
+        t -> JsonToken(NUMBER_TYPE, joinBack(t)),
+        [
+            optional('-'),
+            choiceJoin(
+                '0',
+                [digit19Parser, zeroOrMore(digitParser)],
+            ),
+            optional([
+                '-',
+                oneOrMore(digitParser),
+            ]),
+            optional([
+                choice('e', 'E'),
+                optional(
+                    choice('+', '-'),
+                ),
+                oneOrMore(digitParser),
+            ]),
+        ]
+    );
+
+private var stringTokenParser =
+    modify(
+        t -> JsonToken(STRING_TYPE, joinBack(t)),
+        [
+            '"',
+            zeroOrMore(
+                condition(c -> c != '"'),
+            ),
+            '"',
+        ]
+    );
+
+
+private var tokenParser = choice(
+    keywordTokenParser(OPENING_BRACE_TYPE, "{"),
+    keywordTokenParser(CLOSING_BRACE_TYPE, "}"),
+    keywordTokenParser(OPENING_BRACKET_TYPE, "["),
+    keywordTokenParser(CLOSING_BRACKET_TYPE, "]"),
+    keywordTokenParser(COMMA_TYPE, ","),
+    keywordTokenParser(COLON_TYPE, ":"),
+    keywordTokenParser(TRUE_TYPE, "true"),
+    keywordTokenParser(FALSE_TYPE, "false"),
+    keywordTokenParser(NULL_TYPE, "null"),
+    numberTokenParser,
+    stringTokenParser,
+);
+
+var spaceParser = zeroOrMore(choice(' ', '\t', '\r', '\n')); // TODO: lame
+
+var tokensParser = modify(x -> x.1, [spaceParser, separatedList(spaceParser, tokenParser), spaceParser]);
+
+private tokenize(input): Vector[JsonToken] {
+    var iterator = iterator(input);
+    var result = require(tokensParser(iterator));
+    if (hasNext?(iterator)) {
+        error("not exhausted");
+    }
+    return result;
+}
+
+
+// parser
+
+private var jsonCombinators = Combinators[Type(iterator(Vector[JsonToken]()))]();
+
+private tokenTypeParser(tokenType) = jsonCombinators.condition(t => t.type == tokenType);
+
+private var stringValueParser  = jsonCombinators.modify(t -> unquoteJson(t.text), tokenTypeParser(STRING_TYPE));
+
+private var nullParser = jsonCombinators.modify(t -> JsonNull(), tokenTypeParser(NULL_TYPE));
+private var trueParser = jsonCombinators.modify(t -> JsonBoolean(true), tokenTypeParser(TRUE_TYPE));
+private var falseParser = jsonCombinators.modify(t -> JsonBoolean(false), tokenTypeParser(FALSE_TYPE));
+private var numberParser = jsonCombinators.modify(t -> JsonNumber(t.text), tokenTypeParser(NUMBER_TYPE));
+private var stringParser = jsonCombinators.modify(s -> JsonString(s), stringValueParser);
+
+private var objectParser =
+    jsonCombinators.modify(
+        x -> JsonObject(x.1),
+        [
+            tokenTypeParser(OPENING_BRACE_TYPE),
+            jsonCombinators.optSeparatedList(
+                tokenTypeParser(COMMA_TYPE),
+                jsonCombinators.modify(x -> [x.0, x.2], [
+                    stringValueParser,
+                    tokenTypeParser(COLON_TYPE),
+                    valueParser,
+                ]),
+            ),
+            tokenTypeParser(CLOSING_BRACE_TYPE),
+        ]
+    );
+
+private var arrayParser =
+    jsonCombinators.modify(
+        x -> JsonArray(x.1),
+        [
+            tokenTypeParser(OPENING_BRACKET_TYPE),
+            jsonCombinators.optSeparatedList(
+                tokenTypeParser(COMMA_TYPE),
+                valueParser,
+            ),
+            tokenTypeParser(CLOSING_BRACKET_TYPE),
+        ]
+    );
+
+[V]
+private variantParser(static V, ..parsers) {
+    return jsonCombinators.choice(..mapValues(p => jsonCombinators.modify(V, p), ..parsers));
+}
+
+private valueParser(input): Maybe[JsonValue] =
+    variantParser(JsonValue,
+        nullParser, trueParser, falseParser, numberParser, stringParser, arrayParser, objectParser)(input);
+
+parseJson(input): JsonValue {
+    var tokens = tokenize(input);
+    return require(valueParser(iterator(tokens)));
+}
+
