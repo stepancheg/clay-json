@@ -87,8 +87,9 @@ overload index(array: JsonArray, i): JsonValue =
     index(array.data, i);
 
 overload index(object: JsonObject, k): JsonValue {
+    var adjustedK = String(k);
     for (t in object.data) {
-        if (t.0 == k)
+        if (t.0 == adjustedK)
             return t.1;
     }
     error("no key " + k);
@@ -102,6 +103,17 @@ overload index(array: JsonValue, i: I): JsonValue =
 [K | String?(K)]
 overload index(object: JsonValue, k: K): JsonValue =
     index(getObject(object), k);
+
+[K]
+overload fieldRef(object: JsonObject, static K) =
+    index(object, str(K));
+
+overload fieldRef(object: JsonObject, static #"data") =
+    ref recordFieldRefByName(object, #"data");
+
+[K]
+overload fieldRef(value: JsonValue, static K) =
+    fieldRef(getObject(value), static K);
 
 overload size(array: JsonArray) = size(array.data);
 overload size(object: JsonObject) = size(object.data);

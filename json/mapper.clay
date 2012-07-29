@@ -1,0 +1,64 @@
+import json.*;
+
+define mapToJson;
+define mapFromJson;
+
+[R | Record?(R)]
+overload mapToJson(r: R) {
+    var j = JsonObject();
+    ..for (fieldName in RecordFieldNames(R)) {
+        var fieldJson = mapRecordFieldToJson(r, fieldName);
+        put(j, str(fieldName), fieldJson);
+    }
+    return JsonValue(j);
+}
+
+[R | Record?(R)]
+overload mapFromJson(static R, j: JsonObject) {
+    var r = R();
+    ..for (fieldName in RecordFieldNames(R)) {
+        var fieldJson = index(j, str(fieldName));
+        mapRecordFieldFromJson(r, fieldName, fieldJson);
+    }
+    return r;
+}
+
+[R | Record?(R)]
+overload mapFromJson(static R, j: JsonValue) =
+    mapFromJson(static R, getObject(j));
+
+[R | Record?(R)]
+overload mapFromJson(static R, j: JsonValue) =
+    mapFromJson(static R, getObject(j));
+
+mapRecordFieldToJson(r, fieldName) =
+    mapToJson(fieldRef(r, fieldName));
+
+mapRecordFieldFromJson(r, fieldName, j) {
+    ref field = fieldRef(r, fieldName);
+    field = mapFromJson(Type(field), j);
+}
+
+[S | String?(S)]
+overload mapToJson(s: S) = JsonString(s);
+
+[N | Numeric?(N)]
+overload mapToJson(n: N) = JsonNumber(n);
+
+
+[S | String?(S)]
+overload mapFromJson(static S, value: JsonString) =
+    S(value.value);
+
+[S | String?(S)]
+overload mapFromJson(static S, value: JsonValue) =
+    mapFromJson(S, getString(value));
+
+
+[N | Numeric?(N)]
+overload mapFromJson(static N, value: JsonNumber) =
+    N(value.value);
+
+[N | Numeric?(N)]
+overload mapFromJson(static N, value: JsonValue) =
+    mapFromJson(N, getNumber(value));

@@ -1,0 +1,35 @@
+import test.*;
+
+import json.*;
+import json.mapper.*;
+import json.parser.*;
+
+record Album (
+    title: String,
+    year: UInt,
+);
+
+mapperTestSuite() =
+    TestSuite(
+        "mapper", array(
+            TestCase("to json simple", test => {
+                var a = Album();
+                a.title = String("Pandora's Pinata");
+                a.year = 2012;
+                var j = mapToJson(a);
+                expectEqual(test, "title", "Pandora's Pinata", String(j.title));
+                expectEqual(test, "year", 2012, UInt(j.year));
+            }),
+            TestCase("from json simple", test => {
+                var j = parseJson("""{ "title": "Life for Rent", "year": 2003 }""");
+                var a = mapFromJson(Album, j);
+                expectEqual(test, "title", "Life for Rent", a.title);
+                expectEqual(test, "year", 2003, a.year);
+            }),
+        )
+    );
+
+mapperTestMain() = testMain(mapperTestSuite());
+
+main() = mapperTestMain();
+
