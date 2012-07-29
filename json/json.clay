@@ -50,14 +50,14 @@ getNumber(value) = variantAs(value, JsonNumber);
 getString(value) = variantAs(value, JsonString);
 getBoolean(value) = variantAs(value, JsonBoolean);
 
-getBooleanValue(value) = getBoolean(value).value;
-getDecimalValue(value) = getNumber(value).value;
-getIntValue(value) = Int(getDecimalValue(value));
-getInt64Value(value) = Int64(getDecimalValue(value));
-getInt32Value(value) = Int32(getDecimalValue(value));
-getUInt64Value(value) = UInt64(getDecimalValue(value));
-getUInt32Value(value) = UInt32(getDecimalValue(value));
-getStringValue(value) = getString(value).value;
+overload Bool(value: JsonValue) = getBoolean(value).value;
+overload Decimal(value: JsonValue) = getNumber(value).value;
+overload Int(value: JsonValue) = Int(Decimal(value));
+overload Int64(value: JsonValue) = Int64(Decimal(value));
+overload Int32(value: JsonValue) = Int32(Decimal(value));
+overload UInt64(value: JsonValue) = UInt64(Decimal(value));
+overload UInt32(value: JsonValue) = UInt32(Decimal(value));
+overload String(value: JsonValue) = getString(value).value;
 
 overload push(array: JsonArray, value) =
     ..push(array.data, value);

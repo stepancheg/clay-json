@@ -27,6 +27,10 @@ decimalTestSuite() =
                 expectEqual(test, "to integer", Int(Decimal(1000, 3)), 1000000);
                 expectEqual(test, "to integer", Int(Decimal(-1000, -3)), -1);
             }),
+            TestCase("convert to float", test => {
+                expectEqual(test, "to float", 1.5f, Float(Decimal(15, -1)));
+                expectEqual(test, "to float", 1.5e5fl, Float64(Decimal(15, 4)));
+            }),
             TestCase("changeScale", test => {
                 var d = Decimal(1234, 4);
                 var d1 = changeScale(d, 1);
