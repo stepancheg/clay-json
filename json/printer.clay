@@ -1,0 +1,13 @@
+import json.*;
+
+overload printTo(stream, value: JsonNull) {
+    printTo(stream, "null");
+}
+
+overload printTo(stream, value: JsonBoolean) {
+    printTo(stream, if (value.value) "true" else "false");
+}
+
+overload printTo(stream, value: JsonValue) {
+    printTo(stream, *value);
+}

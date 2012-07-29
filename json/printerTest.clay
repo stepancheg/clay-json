@@ -1,0 +1,26 @@
+import test.*;
+
+import json.*;
+
+private expectPrinted(test, name, expected, value) {
+    expectEqual(test, name, expected, str(value));
+    expectEqual(test, name + " wrapped", expected, str(JsonValue(value)));
+}
+
+printerTestSuite() =
+    TestSuite(
+        "printer", array(
+            TestCase("null", test => {
+                expectPrinted(test, "null", "null", JsonNull());
+            }),
+            TestCase("boolean", test => {
+                expectPrinted(test, "true", "true", JsonBoolean(true));
+                expectPrinted(test, "false", "false", JsonBoolean(false));
+            }),
+        )
+    );
+
+printerTestMain() = testMain(printerTestSuite());
+
+main() = printerTestMain();
+
