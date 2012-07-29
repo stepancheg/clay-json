@@ -1,0 +1,70 @@
+import printer.*;
+
+record Decimal (
+    unscaled: Int64,
+    scale: Int32,
+);
+
+private alias Unscaled = Type(null(Decimal)^.unscaled);
+private alias Scale = Type(null(Decimal)^.scale);
+
+[U, S | Integer?(U, S) and (U != Unscaled or S != Scale)]
+overload Decimal(unscaled: U, scale: S): Decimal = Decimal(Unscaled(unscaled), Scale(scale));
+
+[U | Integer?(U)]
+overload Decimal(value: U) = Decimal(value, 0);
+
+overload printTo(stream, d: Decimal) {
+    printTo(stream, d.unscaled);
+    printTo(stream, 'e');
+    printTo(stream, d.scale);
+}
+
+define exp10;
+
+[I | Integer?(I)]
+overload exp10(base: I, exp) {
+    var r = base;
+    var expCopy = exp;
+    while (expCopy > 0) {
+        r *= 10;
+        expCopy -= 1;
+    }
+    while (expCopy < 0) {
+        r /= 10;
+        expCopy += 1;
+    }
+    return r;
+}
+
+overload exp10(base: Decimal, exp) {
+    return Decimal(base.unscaled, base.scale + exp);
+}
+
+overload equals?(d1: Decimal, d2: Decimal) {
+    var maxScale = max(d1.scale, d2.scale);
+    return exp10(d1.unscaled, maxScale - d2.scale) == exp10(d2.unscaled, maxScale - d1.scale);
+}
+
+overload add(d1: Decimal, d2: Decimal) {
+    var scale = min(d1.scale, d2.scale);
+    return Decimal(changeScale(d1, scale).unscaled + changeScale(d2, scale).unscaled, scale);
+}
+
+overload minus(d: Decimal) =
+    Decimal(-d.unscaled, d.scale);
+
+[I]
+private convertToInteger(static I, d: Decimal) =
+    I(exp10(d.unscaled, d.scale));
+
+overload Int32(d: Decimal) = convertToInteger(Int32, d);
+overload Int64(d: Decimal) = convertToInteger(Int64, d);
+overload UInt32(d: Decimal) = convertToInteger(UInt32, d);
+overload UInt64(d: Decimal) = convertToInteger(UInt64, d);
+
+changeScale(d: Decimal, scale) =
+    Decimal(exp10(d.unscaled, d.scale - scale), scale);
+
+shiftScale(d: Decimal, delta) =
+    changeScale(d, d.scale + delta);

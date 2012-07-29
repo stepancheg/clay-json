@@ -2,6 +2,7 @@ import test.*;
 
 import json.*;
 import json.parser.*;
+import json.support.decimal.*;
 
 parserTestSuite() =
     TestSuite(
@@ -32,6 +33,16 @@ parserTestSuite() =
                 expectTrue(test, "isNumber", isNumber(minusSeventeen));
                 expectEqual(test, "== -17", -17, getIntValue(minusSeventeen));
             }),
+            TestCase("parse 1.5", test => {
+                var oneAndHalf = parseJson("1.5");
+                expectTrue(test, "isNumber", isNumber(oneAndHalf));
+                expectEqual(test, "== 1.5", Decimal(15, -1), getDecimalValue(oneAndHalf));
+            }),
+            TestCase("parse 1.5e5", test => {
+                var oneAndHalf = parseJson("1.5e5");
+                expectTrue(test, "isNumber", isNumber(oneAndHalf));
+                expectEqual(test, "== 1.5e5", Decimal(15, 4), getDecimalValue(oneAndHalf));
+            }),
             TestCase("parse string simple", test => {
                 var s = parseJson("\"hi\"");
                 expectTrue(test, "isString", isString(s));
@@ -46,6 +57,11 @@ parserTestSuite() =
                 var s = parseJson("\"\\\\\"");
                 expectTrue(test, "isString", isString(s));
                 expectEqual(test, "==", "\\", getStringValue(s));
+            }),
+            TestCase("parse string tab", test => {
+                var s = parseJson("\"\\t\"");
+                expectTrue(test, "isString", isString(s));
+                expectEqual(test, "==", "\t", getStringValue(s));
             }),
             TestCase("parse string newline", test => {
                 var s = parseJson("\"\\n\"");

@@ -4,6 +4,7 @@ import numbers.parser.*;
 
 import json.escape.*;
 import json.printer.*;
+import json.support.decimal.*;
 
 /// model
 
@@ -21,7 +22,7 @@ record JsonNull (
 );
 
 record JsonNumber (
-    value: String
+    value: Decimal
 );
 
 record JsonString (
@@ -50,7 +51,12 @@ getString(value) = variantAs(value, JsonString);
 getBoolean(value) = variantAs(value, JsonBoolean);
 
 getBooleanValue(value) = getBoolean(value).value;
-getIntValue(value) = parseInt32(getNumber(value).value);
+getDecimalValue(value) = getNumber(value).value;
+getIntValue(value) = Int(getDecimalValue(value));
+getInt64Value(value) = Int64(getDecimalValue(value));
+getInt32Value(value) = Int32(getDecimalValue(value));
+getUInt64Value(value) = UInt64(getDecimalValue(value));
+getUInt32Value(value) = UInt32(getDecimalValue(value));
 getStringValue(value) = getString(value).value;
 
 overload push(array: JsonArray, value) =

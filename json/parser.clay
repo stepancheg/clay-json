@@ -6,6 +6,7 @@ import vectors.*;
 import json.*;
 import json.escape.*;
 import json.support.misc.*;
+import json.support.decimal.*;
 
 // tokenizer
 
@@ -23,12 +24,14 @@ private enum JsonTokenType (
     NULL_TYPE,
 );
 
+private variant JsonTokenData (String, Decimal, Nothing);
+
 private record JsonToken (
     type: JsonTokenType,
-    text: String,
+    data: JsonTokenData,
 );
 
-private keywordTokenParser(tokenType, keyword) = modify(t => JsonToken(tokenType, String(t)), literalString(keyword));
+private keywordTokenParser(tokenType, keyword) = modify(t => JsonToken(tokenType, JsonTokenData(Nothing)), literalString(keyword));
 
 private var digit19Parser = condition(c => ((c >= '1') and (c <= '9')));
 private var digitParser = condition(c => ((c >= '0') and (c <= '9')));
@@ -73,31 +76,78 @@ private choiceJoin(..parsers) =
     choice(..mapValues(p => modify(r => joinBack(r), p), ..parsers));
 
 
+private digitValue(digit) = UInt(digit) - UInt('0');
+
+private foldBeforeDot(t) {
+    var firstDigit = t.0;
+    var rest = t.1;
+    var r = UInt64(digitValue(firstDigit));
+    for (c in rest) {
+        r = r * 10 + digitValue(c);
+    }
+    return Decimal(r);
+}
+
+private foldAfterDot(digits) {
+    var r = 0ul;
+    for (c in digits) {
+        r = r * 10 + digitValue(c);
+    }
+    return Decimal(r, -Int(size(digits)));
+}
+
+private foldUnsignedIntegerDigits(digits) {
+    var r = 0ul;
+    for (c in digits) {
+        r = r * 10 + digitValue(c);
+    }
+    return r;
+}
+
+var unsignedIntegerParser =
+    modify(foldUnsignedIntegerDigits, oneOrMore(digitParser));
+
+var signedIntegerParser =
+    modify(t -> t.0 * Int64(t.1), [
+        modify(o -> maybe(o, some -> some, () -> 1), optional(
+            modify(c -> if (c == '+') 1 else -1, choice('+', '-'))
+        )),
+        unsignedIntegerParser,
+    ]);
+
 private var numberTokenParser =
     modify(
-        t -> JsonToken(NUMBER_TYPE, joinBack(t)),
+        t => {
+            var minus? = just?(t.0);
+            var digitsBeforeDot = t.1;
+            var digitsAfterDot = t.2;
+            var exp = t.3;
+            
+            var r = exp10(digitsBeforeDot + digitsAfterDot, exp);
+            if (minus?)
+                r = -r;
+            
+            return JsonToken(NUMBER_TYPE, JsonTokenData(r));
+        },
         [
             optional('-'),
-            choiceJoin(
-                '0',
-                [digit19Parser, zeroOrMore(digitParser)],
+            choice(
+                modify(x -> Decimal(0), '0'),
+                modify(foldBeforeDot, [digit19Parser, zeroOrMore(digitParser)]),
             ),
-            optional([
-                '-',
-                oneOrMore(digitParser),
-            ]),
-            optional([
+            modify(o -> maybe(o, t -> t.1, () -> Decimal(0)), optional([
+                '.',
+                modify(foldAfterDot, oneOrMore(digitParser)),
+            ])),
+            modify(o -> maybe(o, t -> t.1, () -> 0l), optional([
                 choice('e', 'E'),
-                optional(
-                    choice('+', '-'),
-                ),
-                oneOrMore(digitParser),
-            ]),
+                signedIntegerParser,
+            ])),
         ]
     );
 
 unescapeCharParser(escape, value) =
-    modify(c -> value, condition(c => c == escape));
+    modify(c => value, condition(c => c == escape));
 
 overload bitor(d1, d2, d3, d4) =
     bitor(bitor(d1, d2), bitor(d3, d4));
@@ -132,7 +182,7 @@ private var stringCharParser =
 
 private var stringTokenParser =
     modify(
-        t -> JsonToken(STRING_TYPE, t.1),
+        t -> JsonToken(STRING_TYPE, JsonTokenData(t.1)),
         [
             '"',
             zeroOrMore(stringCharParser),
@@ -175,12 +225,12 @@ private var jsonCombinators = Combinators[Type(iterator(Vector[JsonToken]()))]()
 
 private tokenTypeParser(tokenType) = jsonCombinators.condition(t => t.type == tokenType);
 
-private var stringValueParser = jsonCombinators.modify(t -> t.text, tokenTypeParser(STRING_TYPE));
+private var stringValueParser = jsonCombinators.modify(t -> variantAs(t.data, String), tokenTypeParser(STRING_TYPE));
 
 private var nullParser = jsonCombinators.modify(t -> JsonNull(), tokenTypeParser(NULL_TYPE));
 private var trueParser = jsonCombinators.modify(t -> JsonBoolean(true), tokenTypeParser(TRUE_TYPE));
 private var falseParser = jsonCombinators.modify(t -> JsonBoolean(false), tokenTypeParser(FALSE_TYPE));
-private var numberParser = jsonCombinators.modify(t -> JsonNumber(t.text), tokenTypeParser(NUMBER_TYPE));
+private var numberParser = jsonCombinators.modify(t -> JsonNumber(variantAs(t.data, Decimal)), tokenTypeParser(NUMBER_TYPE));
 private var stringParser = jsonCombinators.modify(s -> JsonString(s), stringValueParser);
 
 private var objectParser =

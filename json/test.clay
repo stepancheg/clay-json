@@ -3,11 +3,13 @@ import test.*;
 import json.parserTest.*;
 import json.escapeTest.*;
 import json.printerTest.*;
+import json.support.decimalTest.*;
 
 jsonTestMain() = testMain(
     parserTestSuite(),
     escapeTestSuite(),
     printerTestSuite(),
+    decimalTestSuite(),
 );
 
 main() = jsonTestMain();
