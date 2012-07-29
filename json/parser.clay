@@ -37,9 +37,9 @@ private var digitParser = condition(c => ((c >= '0') and (c <= '9')));
 
 private var hexdigitValueParser =
     choice(
-        modify(c => UInt(c) - UInt('0'), condition(c => (c >= '0') and (c <= '9'))),
-        modify(c => UInt(c) - UInt('a'), condition(c => (c >= 'a') and (c <= 'z'))),
-        modify(c => UInt(c) - UInt('A'), condition(c => (c >= 'A') and (c <= 'Z'))),
+        modify(c => UInt(c) - UInt('0'),      condition(c => (c >= '0') and (c <= '9'))),
+        modify(c => UInt(c) - UInt('a') + 10, condition(c => (c >= 'a') and (c <= 'f'))),
+        modify(c => UInt(c) - UInt('A') + 10, condition(c => (c >= 'A') and (c <= 'F'))),
     );
 
 private define joinBackImpl;
