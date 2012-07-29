@@ -2,7 +2,8 @@ import test.*;
 
 import json.*;
 
-private expectPrinted(test, name, expected, value) {
+[V | VariantMember?(JsonValue, V)]
+private expectPrinted(test, name, expected, value: V) {
     expectEqual(test, name, expected, str(value));
     expectEqual(test, name + " wrapped", expected, str(JsonValue(value)));
 }
@@ -16,6 +17,28 @@ printerTestSuite() =
             TestCase("boolean", test => {
                 expectPrinted(test, "true", "true", JsonBoolean(true));
                 expectPrinted(test, "false", "false", JsonBoolean(false));
+            }),
+            TestCase("number", test => {
+                expectPrinted(test, "12", "12", JsonNumber(12));
+            }),
+            TestCase("string", test => {
+                expectPrinted(test, "\"abc\"", "\"abc\"", JsonString("abc"));
+            }),
+            TestCase("array", test => {
+                var array = JsonArray();
+                expectPrinted(test, "empty array", "[]", array);
+                push(array, 17);
+                expectPrinted(test, "array of 1", "[17]", array);
+                push(array, "xy");
+                expectPrinted(test, "array of 2", "[17, \"xy\"]", array);
+            }),
+            TestCase("object", test => {
+                var object = JsonObject();
+                expectPrinted(test, "empty object", "{}", object);
+                put(object, "hello", 5);
+                expectPrinted(test, "empty object", "{\"hello\": 5}", object);
+                put(object, "world", JsonArray());
+                expectPrinted(test, "empty object", "{\"hello\": 5, \"world\": []}", object);
             }),
         )
     );

@@ -11,35 +11,39 @@ private hexDigit(n): Char {
     }
 }
 
-quoteJson(rawString) {
-    var r = String();
-    vectorRequestCapacity(r, size(rawString) + 2);
-    push(r, '"');
+quoteJsonTo(stream, rawString) {
+    printTo(stream, '"');
     alias CharType = Type(rawString[0]);
     for (c in rawString) {
         if (c == '\n') {
-            push(r, "\\n");
+            printTo(stream, "\\n");
         } else if (c == '\r') {
-            push(r, "\\r");
+            printTo(stream, "\\r");
         } else if (c == '\t') {
-            push(r, "\\t");
+            printTo(stream, "\\t");
         } else if (c == '\f') {
-            push(r, "\\f");
+            printTo(stream, "\\f");
         } else if (c == CharType(8) /*\b*/) {
-            push(r, "\\b");
+            printTo(stream, "\\b");
         } else if (c == '\\' or c == '\"') {
-            push(r, '\\');
-            push(r, c);
+            printTo(stream, '\\');
+            printTo(stream, c);
         } else if (c < CharType(0x20)) {
-            push(r, "\\u");
+            printTo(stream, "\\u");
             ..for (n in ..staticIntegers(static 4)) {
-                push(r, hexDigit(bitand(bitshr(UInt32(c), (3 - unwrapStatic(n)) * 4), 0x7)));
+                printTo(stream, hexDigit(bitand(bitshr(UInt32(c), (3 - unwrapStatic(n)) * 4), 0x7)));
             }
         } else {
-            push(r, c);
+            printTo(stream, c);
         }
     }
-    push(r, '"');
+    printTo(stream, '"');
+}
+
+quoteJson(rawString) {
+    var r = String();
+    vectorRequestCapacity(r, size(rawString) + 2);
+    quoteJsonTo(r, rawString);
     return r;
 }
 

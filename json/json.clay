@@ -36,6 +36,9 @@ record JsonBoolean (
 
 variant JsonValue (JsonArray, JsonObject, JsonNull, JsonNumber, JsonString, JsonBoolean);
 
+[J]
+JsonAnything?(static J) = J == JsonValue or VariantMember?(JsonValue, J);
+
 isArray(value) = variantIs?(value, JsonArray);
 isObject(value) = variantIs?(value, JsonObject);
 isNull(value) = variantIs?(value, JsonNull);
@@ -59,11 +62,27 @@ overload UInt64(value: JsonValue) = UInt64(Decimal(value));
 overload UInt32(value: JsonValue) = UInt32(Decimal(value));
 overload String(value: JsonValue) = getString(value).value;
 
+[N | N != Decimal and N != JsonNumber]
+overload JsonNumber(n: N) = JsonNumber(Decimal(n));
+
+[S | S != String and S != JsonString]
+overload JsonString(s: S) = JsonString(String(s));
+
+[S | String?(S)]
+overload JsonValue(s: S) = JsonValue(JsonString(s));
+[N | Numeric?(N)]
+overload JsonValue(n: N) = JsonValue(JsonNumber(n));
+[]
+overload JsonValue(b: Bool) = JsonValue(JsonBoolean(b));
+
 overload push(array: JsonArray, value) =
-    ..push(array.data, value);
+    ..push(array.data, JsonValue(value));
 
 overload push(object: JsonObject, value) =
     ..push(object.data, value);
+
+put(object: JsonObject, key, value) =
+    ..push(object.data, [String(key), JsonValue(value)]);
 
 overload index(array: JsonArray, i): JsonValue =
     index(array.data, i);
@@ -102,4 +121,6 @@ overload size(value: JsonValue) {
     }
 }
 
+overload iterator(array: JsonArray) = iterator(array.data);
+overload iterator(object: JsonObject) = iterator(object.data);
 

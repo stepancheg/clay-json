@@ -1,13 +1,94 @@
 import json.*;
 
-overload printTo(stream, value: JsonNull) {
+import json.escape.*;
+
+record PrintCompact();
+record PrintOneLine();
+record PrintPretty(
+    indent: UInt,
+);
+
+overload PrintPretty() = PrintPretty(0);
+
+variant PrintStyle (PrintCompact, PrintOneLine, PrintPretty);
+
+define printJsonTo;
+
+overload printJsonTo(stream, value: JsonNull, style) {
     printTo(stream, "null");
 }
 
-overload printTo(stream, value: JsonBoolean) {
+overload printJsonTo(stream, value: JsonBoolean, style) {
     printTo(stream, if (value.value) "true" else "false");
 }
 
-overload printTo(stream, value: JsonValue) {
-    printTo(stream, *value);
+overload printJsonTo(stream, value: JsonString, style) {
+    quoteJsonTo(stream, value.value);
 }
+
+overload printJsonTo(stream, value: JsonNumber, style) {
+    printTo(stream, value.value.unscaled);
+    if (value.value.scale != 0) {
+        printTo(stream, 'e');
+        printTo(stream, value.value.scale);
+    }
+}
+
+overload printJsonTo(stream, value: JsonArray, style) {
+    printTo(stream, "[");
+    var first = true;
+    for (item in value) {
+        if (not first) {
+            if (variantIs?(style, PrintCompact)) {
+                printTo(stream, ",");
+            } else {
+                printTo(stream, ", ");
+            }
+        }
+        printJsonTo(stream, item, style);
+        first = false;
+    }
+    printTo(stream, "]");
+}
+
+overload printJsonTo(stream, value: JsonObject, style) {
+    printTo(stream, "{");
+    var first = true;
+    for (item in value) {
+        if (not first) {
+            if (variantIs?(style, PrintCompact)) {
+                printTo(stream, ",");
+            } else {
+                printTo(stream, ", ");
+            }
+        }
+        printJsonTo(stream, JsonString(item.0), style);
+        if (variantIs?(style, PrintCompact)) {
+            printTo(stream, ":");
+        } else {
+            printTo(stream, ": ");
+        }
+        printJsonTo(stream, item.1, style);
+        first = false;
+    }
+    printTo(stream, "}");
+}
+
+
+overload printJsonTo(stream, value: JsonValue, style: PrintStyle) =
+    ..printJsonTo(stream, *value, style);
+
+printCompactTo(stream, value) =
+    ..printJsonTo(stream, value, PrintStyle(PrintCompact()));
+
+printOneLineTo(stream, value) =
+    ..printJsonTo(stream, value, PrintStyle(PrintOneLine()));
+
+printPrettyTo(stream, value) =
+    ..printPrettyTo(stream, value, PrintStyle(PrintPretty()));
+
+
+[J | JsonAnything?(J)]
+overload printTo(stream, value: J) =
+    ..printOneLineTo(stream, value);
+
