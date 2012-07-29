@@ -2,10 +2,12 @@ import test.*;
 
 import json.parserTest.*;
 import json.escapeTest.*;
+import json.printerTest.*;
 
 jsonTestMain() = testMain(
     parserTestSuite(),
     escapeTestSuite(),
+    printerTestSuite(),
 );
 
 main() = jsonTestMain();
