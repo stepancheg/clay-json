@@ -8,7 +8,7 @@ record PrintPretty(
     indent: UInt,
 );
 
-overload PrintPretty() = PrintPretty(0);
+overload PrintPretty() = PrintPretty(0u);
 
 variant PrintStyle (PrintCompact, PrintOneLine, PrintPretty);
 
@@ -34,19 +34,50 @@ overload printJsonTo(stream, value: JsonNumber, style) {
     }
 }
 
+private printNewlineAndIndentTo(stream, style: PrintStyle) {
+    if (variantIs?(style, PrintPretty)) {
+        var indent = variantAs(style, PrintPretty).indent;
+        printTo(stream, "\n");
+        for (i in range(indent)) {
+            printTo(stream, "    ");
+        }
+    }
+    /*
+    match(style,
+        (p: PrintPretty) => {
+            // ?
+        },
+        (x) => { printTo(stream, "x"); },
+   );
+   */
+}
+
+private comma(style: PrintStyle) =
+    match(style,
+        (p: PrintPretty) => ",",
+        (p: PrintCompact) => ",",
+        (p: PrintOneLine) => ", ",
+    );
+
+private printStyleNext(style: PrintStyle) =
+    match(style,
+        (p: PrintPretty) => PrintStyle(PrintPretty(p.indent + 1)),
+        (x) => PrintStyle(x),
+    );
+
 overload printJsonTo(stream, value: JsonArray, style) {
     printTo(stream, "[");
     var first = true;
     for (item in value) {
         if (not first) {
-            if (variantIs?(style, PrintCompact)) {
-                printTo(stream, ",");
-            } else {
-                printTo(stream, ", ");
-            }
+            printTo(stream, comma(style));
         }
-        printJsonTo(stream, item, style);
+        printNewlineAndIndentTo(stream, printStyleNext(style));
+        printJsonTo(stream, item, printStyleNext(style));
         first = false;
+    }
+    if (not first) {
+        printNewlineAndIndentTo(stream, style);
     }
     printTo(stream, "]");
 }
@@ -56,20 +87,20 @@ overload printJsonTo(stream, value: JsonObject, style) {
     var first = true;
     for (item in value) {
         if (not first) {
-            if (variantIs?(style, PrintCompact)) {
-                printTo(stream, ",");
-            } else {
-                printTo(stream, ", ");
-            }
+            printTo(stream, comma(style));
         }
-        printJsonTo(stream, JsonString(item.0), style);
+        printNewlineAndIndentTo(stream, printStyleNext(style));
+        printCompactTo(stream, JsonString(item.0));
         if (variantIs?(style, PrintCompact)) {
             printTo(stream, ":");
         } else {
             printTo(stream, ": ");
         }
-        printJsonTo(stream, item.1, style);
+        printJsonTo(stream, item.1, printStyleNext(style));
         first = false;
+    }
+    if (not first) {
+        printNewlineAndIndentTo(stream, style);
     }
     printTo(stream, "}");
 }
@@ -85,7 +116,18 @@ printOneLineTo(stream, value) =
     ..printJsonTo(stream, value, PrintStyle(PrintOneLine()));
 
 printPrettyTo(stream, value) =
-    ..printPrettyTo(stream, value, PrintStyle(PrintPretty()));
+    ..printJsonTo(stream, value, PrintStyle(PrintPretty()));
+
+
+private strWithStyle(value, style) {
+    var r = String();
+    printJsonTo(r, value, style);
+    return r;
+}
+
+strCompact(value) = strWithStyle(value, PrintStyle(PrintCompact()));
+strOneLine(value) = strWithStyle(value, PrintStyle(PrintOneLine()));
+strPretty(value) = strWithStyle(value, PrintStyle(PrintPretty()));
 
 
 [J | JsonAnything?(J)]

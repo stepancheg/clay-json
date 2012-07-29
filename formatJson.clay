@@ -1,0 +1,11 @@
+import io.files.*;
+
+import json.*;
+import json.parser.*;
+import json.printer.*;
+
+main() {
+    var text = readAll(stdin);
+    var json = parseJson(text);
+    printPrettyTo(stdout, json);
+}

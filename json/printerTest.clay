@@ -1,11 +1,18 @@
 import test.*;
 
 import json.*;
+import json.printer.*;
 
 [V | VariantMember?(JsonValue, V)]
 private expectPrinted(test, name, expected, value: V) {
     expectEqual(test, name, expected, str(value));
     expectEqual(test, name + " wrapped", expected, str(JsonValue(value)));
+}
+
+[V | VariantMember?(JsonValue, V)]
+private expectPrintedPretty(test, name, expected, value: V) {
+    expectEqual(test, name, expected, strPretty(value));
+    expectEqual(test, name + " wrapped", expected, strPretty(JsonValue(value)));
 }
 
 printerTestSuite() =
@@ -32,6 +39,14 @@ printerTestSuite() =
                 push(array, "xy");
                 expectPrinted(test, "array of 2", "[17, \"xy\"]", array);
             }),
+            TestCase("array pretty", test => {
+                var array = JsonArray();
+                expectPrintedPretty(test, "empty array", "[]", array);
+                push(array, 37);
+                expectPrintedPretty(test, "array of 1", "[\n    37\n]", array);
+                push(array, "zw");
+                expectPrintedPretty(test, "array of 1", "[\n    37,\n    \"zw\"\n]", array);
+            }),
             TestCase("object", test => {
                 var object = JsonObject();
                 expectPrinted(test, "empty object", "{}", object);
@@ -39,6 +54,14 @@ printerTestSuite() =
                 expectPrinted(test, "empty object", "{\"hello\": 5}", object);
                 put(object, "world", JsonArray());
                 expectPrinted(test, "empty object", "{\"hello\": 5, \"world\": []}", object);
+            }),
+            TestCase("object pretty", test => {
+                var object = JsonObject();
+                expectPrintedPretty(test, "empty object", "{}", object);
+                put(object, "hello", 9);
+                expectPrintedPretty(test, "object of 1", "{\n    \"hello\": 9\n}", object);
+                put(object, "world", JsonArray());
+                expectPrintedPretty(test, "object of 2", "{\n    \"hello\": 9,\n    \"world\": []\n}", object);
             }),
         )
     );

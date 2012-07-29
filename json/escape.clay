@@ -1,6 +1,5 @@
 import vectors.generic.*;
 
-import json.support.misc.*;
 
 
 private hexDigit(n): Char {

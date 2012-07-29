@@ -55,11 +55,10 @@ getBoolean(value) = variantAs(value, JsonBoolean);
 
 overload Bool(value: JsonValue) = getBoolean(value).value;
 overload Decimal(value: JsonValue) = getNumber(value).value;
-overload Int(value: JsonValue) = Int(Decimal(value));
-overload Int64(value: JsonValue) = Int64(Decimal(value));
-overload Int32(value: JsonValue) = Int32(Decimal(value));
-overload UInt64(value: JsonValue) = UInt64(Decimal(value));
-overload UInt32(value: JsonValue) = UInt32(Decimal(value));
+
+[I | Numeric?(I)]
+overload I(value: JsonValue) = I(Decimal(value));
+
 overload String(value: JsonValue) = getString(value).value;
 
 [N | N != Decimal and N != JsonNumber]

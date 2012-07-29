@@ -5,7 +5,6 @@ import vectors.*;
 
 import json.*;
 import json.escape.*;
-import json.support.misc.*;
 import json.support.decimal.*;
 
 // tokenizer
