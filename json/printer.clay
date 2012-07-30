@@ -34,9 +34,9 @@ overload printJsonTo(stream, value: JsonNumber, style) {
     }
 }
 
-private printNewlineAndIndentTo(stream, style: PrintStyle) {
-    if (variantIs?(style, PrintPretty)) {
-        var indent = variantAs(style, PrintPretty).indent;
+private printNewlineAndIndentTo(stream, style) {
+    if (variantIs?(PrintStyle(style), PrintPretty)) {
+        var indent = variantAs(PrintStyle(style), PrintPretty).indent;
         printTo(stream, "\n");
         for (i in range(indent)) {
             printTo(stream, "    ");
@@ -52,15 +52,15 @@ private printNewlineAndIndentTo(stream, style: PrintStyle) {
    */
 }
 
-private comma(style: PrintStyle) =
-    match(style,
+private comma(style) =
+    match(PrintStyle(style),
         (p: PrintPretty) => ",",
         (p: PrintCompact) => ",",
         (p: PrintOneLine) => ", ",
     );
 
-private printStyleNext(style: PrintStyle) =
-    match(style,
+private printStyleNext(style) =
+    match(PrintStyle(style),
         (p: PrintPretty) => PrintStyle(PrintPretty(p.indent + 1)),
         (x) => PrintStyle(x),
     );
@@ -91,7 +91,7 @@ overload printJsonTo(stream, value: JsonObject, style) {
         }
         printNewlineAndIndentTo(stream, printStyleNext(style));
         printCompactTo(stream, JsonString(item.0));
-        if (variantIs?(style, PrintCompact)) {
+        if (variantIs?(PrintStyle(style), PrintCompact)) {
             printTo(stream, ":");
         } else {
             printTo(stream, ": ");
@@ -106,17 +106,17 @@ overload printJsonTo(stream, value: JsonObject, style) {
 }
 
 
-overload printJsonTo(stream, value: JsonValue, style: PrintStyle) =
+overload printJsonTo(stream, value: JsonValue, style) =
     ..printJsonTo(stream, *value, style);
 
 printCompactTo(stream, value) =
-    ..printJsonTo(stream, value, PrintStyle(PrintCompact()));
+    ..printJsonTo(stream, value, PrintCompact());
 
 printOneLineTo(stream, value) =
-    ..printJsonTo(stream, value, PrintStyle(PrintOneLine()));
+    ..printJsonTo(stream, value, PrintOneLine());
 
 printPrettyTo(stream, value) =
-    ..printJsonTo(stream, value, PrintStyle(PrintPretty()));
+    ..printJsonTo(stream, value, PrintPretty());
 
 
 private strWithStyle(value, style) {
@@ -125,9 +125,9 @@ private strWithStyle(value, style) {
     return r;
 }
 
-strCompact(value) = strWithStyle(value, PrintStyle(PrintCompact()));
-strOneLine(value) = strWithStyle(value, PrintStyle(PrintOneLine()));
-strPretty(value) = strWithStyle(value, PrintStyle(PrintPretty()));
+strCompact(value) = strWithStyle(value, PrintCompact());
+strOneLine(value) = strWithStyle(value, PrintOneLine());
+strPretty(value) = strWithStyle(value, PrintPretty());
 
 
 [J | JsonAnything?(J)]
