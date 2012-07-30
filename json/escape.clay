@@ -30,7 +30,8 @@ quoteJsonTo(stream, rawString) {
         } else if (c < CharType(0x20)) {
             printTo(stream, "\\u");
             ..for (n in ..staticIntegers(static 4)) {
-                printTo(stream, hexDigit(bitand(bitshr(UInt32(c), (3 - unwrapStatic(n)) * 4), 0x7)));
+                // TODO: use proper int type
+                printTo(stream, hexDigit(bitand(bitshr(Int32(c), (3 - unwrapStatic(n)) * 4), 0xf)));
             }
         } else {
             printTo(stream, c);
