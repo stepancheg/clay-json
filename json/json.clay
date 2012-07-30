@@ -67,6 +67,41 @@ overload JsonNumber(n: N) = JsonNumber(Decimal(n));
 [S | S != String and S != JsonString]
 overload JsonString(s: S) = JsonString(String(s));
 
+[..T]
+overload JsonArray(v: Tuple[..T]) {
+    var r = JsonArray();
+    push(r, ..unpackTuple(v));
+    return r;
+}
+
+[S | Sequence?(S) and S != JsonArray]
+overload JsonArray(s: S) {
+    var r = JsonArray();
+    for (item in s) {
+        push(r, item);
+    }
+    return r;
+}
+
+private define stringForKey;
+[S | String?(S)]
+overload stringForKey(s: S) = String(s);
+[S]
+overload stringForKey(static S) = stringForKey(StaticName(S));
+
+[T]
+private KeyValueTuple?(static T) = Tuple?(T) and countValues(..TupleElements(T)) == 2;
+
+[..T | allValues?(KeyValueTuple?, ..T)]
+overload JsonObject(kvs: Tuple[..T]) {
+    var r = JsonObject();
+    ..for (kv in ..unpackTuple(kvs)) {
+        put(r, kv.0, kv.1);
+    }
+    return r;
+}
+
+
 [S | String?(S)]
 overload JsonValue(s: S) = JsonValue(JsonString(s));
 [N | Numeric?(N)]
@@ -74,25 +109,26 @@ overload JsonValue(n: N) = JsonValue(JsonNumber(n));
 []
 overload JsonValue(b: Bool) = JsonValue(JsonBoolean(b));
 
-overload push(array: JsonArray, value) =
-    ..push(array.data, JsonValue(value));
+[..V | countValues(..V) > 0]
+overload push(array: JsonArray, ..value: V) =
+    ..push(array.data, ..mapValues(JsonValue, ..value));
 
 overload push(object: JsonObject, value) =
     ..push(object.data, value);
 
 put(object: JsonObject, key, value) =
-    ..push(object.data, [String(key), JsonValue(value)]);
+    ..push(object.data, [stringForKey(key), JsonValue(value)]);
 
 overload index(array: JsonArray, i): JsonValue =
     index(array.data, i);
 
 overload index(object: JsonObject, k): JsonValue {
-    var adjustedK = String(k);
+    var adjustedK = stringForKey(k);
     for (t in object.data) {
         if (t.0 == adjustedK)
             return t.1;
     }
-    error("no key " + k);
+    error("no key ", k);
     throw Error();
 }
 
@@ -106,7 +142,7 @@ overload index(object: JsonValue, k: K): JsonValue =
 
 [K]
 overload fieldRef(object: JsonObject, static K) =
-    index(object, str(K));
+    index(object, StaticName(K));
 
 overload fieldRef(object: JsonObject, static #"data") =
     ref recordFieldRefByName(object, #"data");

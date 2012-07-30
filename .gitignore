@@ -1,4 +1,5 @@
 test
+*Test
+formatJson
 tmp*
 .gdb_history
-formatJson

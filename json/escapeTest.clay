@@ -14,6 +14,7 @@ escapeTestSuite() =
                 expectEqual(test, "tab", "\"\\t\"", quoteJson("\t"));
                 expectEqual(test, "\\1", "\"\\u0001\"", quoteJson("\x01"));
                 expectEqual(test, "\\xab", "\"\\u00ab\"", quoteJson("\xab"));
+                expectEqual(test, "\\xff", "\"\\u00ff\"", quoteJson("\xff"));
             }),
         ),
     );

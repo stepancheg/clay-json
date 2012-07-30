@@ -8,7 +8,7 @@ overload mapToJson(r: R) {
     var j = JsonObject();
     ..for (fieldName in RecordFieldNames(R)) {
         var fieldJson = mapRecordFieldToJson(r, fieldName);
-        put(j, str(fieldName), fieldJson);
+        put(j, fieldName, fieldJson);
     }
     return JsonValue(j);
 }
@@ -17,7 +17,7 @@ overload mapToJson(r: R) {
 overload mapFromJson(static R, j: JsonObject) {
     var r = R();
     ..for (fieldName in RecordFieldNames(R)) {
-        var fieldJson = index(j, str(fieldName));
+        var fieldJson = index(j, fieldName);
         mapRecordFieldFromJson(r, fieldName, fieldJson);
     }
     return r;
