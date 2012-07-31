@@ -12,7 +12,8 @@ overload PrintPretty() = PrintPretty(0u);
 
 variant PrintStyle (PrintCompact, PrintOneLine, PrintPretty);
 
-define printJsonTo;
+[J | JsonAnything?(J)]
+define printJsonTo(stream, j: J, style): ;
 
 overload printJsonTo(stream, value: JsonNull, style) {
     printTo(stream, "null");

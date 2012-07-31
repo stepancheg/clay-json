@@ -85,7 +85,7 @@ overload JsonArray(s: S) {
     return r;
 }
 
-private define stringForKey;
+private define stringForKey(s): String;
 [S | String?(S)]
 overload stringForKey(s: S) = String(s);
 [S]

@@ -1,7 +1,8 @@
 import json.*;
 
-define mapToJson;
-define mapFromJson;
+define mapToJson(r);
+[R]
+define mapFromJson(static R, j): R;
 
 [R | Record?(R)]
 overload mapToJson(r: R) {

@@ -42,38 +42,6 @@ private var hexdigitValueParser =
         modify(c => UInt(c) - UInt('A') + 10, condition(c => (c >= 'A') and (c <= 'F'))),
     );
 
-private define joinBackImpl;
-
-overload joinBackImpl(r, s: String) {
-    push(r, s);
-}
-
-overload joinBackImpl(r, c: Char) {
-    push(r, c);
-}
-
-// TODO: hack
-[T | Tuple?(T)]
-overload joinBackImpl(r, t: T) {
-    ..for (v in ..unpackTuple(t)) {
-        joinBackImpl(r, v);
-    }
-}
-
-[T]
-overload joinBackImpl(r, m: Maybe[T]) {
-    maybe(m, just -> ..joinBackImpl(r, just));
-}
-
-private joinBack(v) {
-    var r = String();
-    joinBackImpl(r, v);
-    return r;
-}
-
-private choiceJoin(..parsers) =
-    choice(..mapValues(p => modify(r => joinBack(r), p), ..parsers));
-
 
 private digitValue(digit) = UInt(digit) - UInt('0');
 

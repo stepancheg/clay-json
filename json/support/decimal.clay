@@ -5,6 +5,9 @@ record Decimal (
     scale: Int32,
 );
 
+// TODO
+//overload Numeric?(Decimal) = true;
+
 private alias Unscaled = Type(null(Decimal)^.unscaled);
 private alias Scale = Type(null(Decimal)^.scale);
 
@@ -20,7 +23,8 @@ overload printTo(stream, d: Decimal) {
     printTo(stream, d.scale);
 }
 
-define exp10;
+[N, I | /*Numeric?(N) and*/ Integer?(I)]
+define exp10(n: N, exp: I): N;
 
 [I | Integer?(I)]
 overload exp10(base: I, exp) {
