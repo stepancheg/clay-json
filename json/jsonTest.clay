@@ -38,6 +38,10 @@ jsonTestSuite() =
                 expectTrue(test, "isNumber", isNumber(a2[0]));
                 expectEqual(test, "5", 5, Int(a2[0]));
             }),
+            TestCase("JsonArray from sequence of ints", test => {
+                var a = JsonArray(mapped(i -> i + 1, Vector[Int](3, 4, 8)));
+                expectEqual(test, "array", JsonArray([4, 5, 9]), a);
+            }),
             TestCase("JsonArray operator[] can be used to set JsonValue", test => {
                 var a = JsonArray([1, "a"]);
                 a[0] = JsonValue("x");

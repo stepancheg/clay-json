@@ -92,7 +92,7 @@ overload stringForKey(s: S) = String(s);
 overload stringForKey(static S) = stringForKey(StaticName(S));
 
 [T]
-private KeyValueTuple?(static T) = Tuple?(T) and TupleElementCount(T) == 2;
+private KeyValueTuple?(static T) = Tuple?(T) and TupleElementCount(T) == 2 and CallDefined?(stringForKey, nthValue(static 0, ..TupleElements(T)));
 
 [..T | allValues?(KeyValueTuple?, ..T)]
 overload JsonObject(kvs: Tuple[..T]) {
