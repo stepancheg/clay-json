@@ -1,0 +1,13 @@
+import json.model.*;
+import json.mapper.*;
+
+record BoolMapper();
+
+overload JsonMapperMaps(static BoolMapper) = Bool, JsonBoolean;
+
+overload JsonMapper(static Bool) = BoolMapper;
+
+overload mapToJson(m: BoolMapper, b: Bool) = JsonBoolean(b);
+
+overload mapFromJson(m: BoolMapper, j: JsonBoolean) = j.value;
+

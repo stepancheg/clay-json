@@ -1,0 +1,59 @@
+import lambdas.*;
+
+import json.model.*;
+
+
+import json.mapper.bool.*;
+
+import json.mapper.numeric.*;
+
+import json.mapper.records.*;
+public import json.mapper.records.(RecordJsonFieldName);
+public import json.mapper.records.(recordJsonFieldName);
+public import json.mapper.records.(IncludeRecordJsonField);
+
+import json.mapper.sequence.*;
+
+import json.mapper.string.*;
+
+
+[T]
+define JsonMapper(static T);
+
+[T]
+jsonMapper(static T) = JsonMapper(T)();
+
+[M]
+define JsonMapperMaps(static M);
+
+[M]
+JsonMapper?(static M) = CallDefined?(JsonMapperMaps, Static[M]);
+
+[M]
+JsonMapperMapsFrom(static M) = nthValue(static 0, ..JsonMapperMaps(M));
+[M]
+JsonMapperMapsTo(static M) = nthValue(static 1, ..JsonMapperMaps(M));
+
+[M, T | JsonMapper?(M) and JsonMapperMapsFrom(M) == T]
+define mapToJson(m: M, t: T);
+
+[M, J | JsonMapper?(M) and JsonAnything?(J)]
+define mapFromJson(m: M, j: J);
+
+
+[M | JsonMapper?(M)]
+overload mapFromJson(m: M, j: JsonValue) =
+    mapFromJson(m, variantAs(j, JsonMapperMapsTo(M)));
+
+
+
+
+/// quick functions construct mapper and then unmap using that mapper
+/// these functions can be expension if mapper construction is expensive
+
+[T]
+mapToJsonQuick(t: T) = mapToJson(jsonMapper(static T), t);
+
+[T, J | JsonAnything?(J)]
+mapFromJsonQuick(static T, j: J) = mapFromJson(jsonMapper(T), j);
+

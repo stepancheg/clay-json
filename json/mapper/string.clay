@@ -1,0 +1,16 @@
+import json.model.*;
+import json.mapper.*;
+
+
+record StringJsonMapper ();
+
+overload JsonMapperMaps(static StringJsonMapper) = String, JsonString;
+
+overload JsonMapper(static String) = StringJsonMapper;
+
+overload mapToJson(m: StringJsonMapper, s: String) = JsonString(s);
+
+overload mapFromJson(m: StringJsonMapper, j: JsonString) = j.value;
+
+
+

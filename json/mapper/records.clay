@@ -1,39 +1,8 @@
-import lambdas.*;
-
-import json.*;
-import json.support.values.*;
 import json.support.records.*;
+import json.support.values.*;
 
-[T]
-define JsonMapper(static T);
-
-[T]
-jsonMapper(static T) = JsonMapper(T)();
-
-[M]
-define JsonMapperMaps(static M);
-
-[M]
-JsonMapper?(static M) = CallDefined?(JsonMapperMaps, Static[M]);
-
-[M]
-JsonMapperMapsFrom(static M) = nthValue(static 0, ..JsonMapperMaps(M));
-[M]
-JsonMapperMapsTo(static M) = nthValue(static 1, ..JsonMapperMaps(M));
-
-[M, T | JsonMapper?(M) and JsonMapperMapsFrom(M) == T]
-define mapToJson(m: M, t: T);
-
-[M, J | JsonMapper?(M) and JsonAnything?(J)]
-define mapFromJson(m: M, j: J);
-
-
-[M | JsonMapper?(M)]
-overload mapFromJson(m: M, j: JsonValue) =
-    mapFromJson(m, variantAs(j, JsonMapperMapsTo(M)));
-
-
-/// record mapper
+import json.model.*;
+import json.mapper.*;
 
 
 // overload to specify custom json field name for record field
@@ -161,91 +130,4 @@ overload mapFromJson(m: RecordJsonMapper[R], j: JsonObject) {
     return r;
 }
 
-
-/// sequence mapper
-
-
-record SequenceMapper[S] (
-    itemMapper: JsonMapper(SequenceElementType(S)),
-);
-
-[S]
-overload JsonMapperMaps(static SequenceMapper[S]) = S, JsonArray;
-
-[S | Sequence?(S)]
-overload JsonMapper(static S) = SequenceMapper[S];
-
-[S]
-overload mapToJson(m: SequenceMapper[S], s: S) {
-    var a = JsonArray();
-    for (item in s) {
-        push(a, mapToJson(m.itemMapper, item));
-    }
-    return a;
-}
-
-[S]
-overload mapFromJson(m: SequenceMapper[S], j: JsonArray) {
-    var s = S();
-    for (item in j) {
-        push(s, mapFromJson(m.itemMapper, item));
-    }
-    return s;
-}
-
-
-/// string mapper
-
-
-record StringJsonMapper ();
-
-overload JsonMapperMaps(static StringJsonMapper) = String, JsonString;
-
-overload JsonMapper(static String) = StringJsonMapper;
-
-overload mapToJson(m: StringJsonMapper, s: String) = JsonString(s);
-
-overload mapFromJson(m: StringJsonMapper, j: JsonString) = j.value;
-
-
-/// numeric mapper
-
-[N | Numeric?(N)]
-record NumericJsonMapper[N]();
-
-[N]
-overload JsonMapperMaps(static NumericJsonMapper[N]) = N, JsonNumber;
-
-[N | Numeric?(N)]
-overload JsonMapper(static N) = NumericJsonMapper[N];
-
-[N]
-overload mapToJson(m: NumericJsonMapper[N], n: N) = JsonNumber(n);
-
-[N]
-overload mapFromJson(m: NumericJsonMapper[N], j: JsonNumber) = N(j);
-
-
-/// bool mapper
-
-record BoolMapper();
-
-overload JsonMapperMaps(static BoolMapper) = Bool, JsonBoolean;
-
-overload JsonMapper(static Bool) = BoolMapper;
-
-overload mapToJson(m: BoolMapper, b: Bool) = JsonBoolean(b);
-
-overload mapFromJson(m: BoolMapper, j: JsonBoolean) = j.value;
-
-
-
-/// quick functions construct mapper and then unmap using that mapper
-/// these functions can be expension if mapper construction is expensive
-
-[T]
-mapToJsonQuick(t: T) = mapToJson(jsonMapper(static T), t);
-
-[T, J | JsonAnything?(J)]
-mapFromJsonQuick(static T, j: J) = mapFromJson(jsonMapper(T), j);
 

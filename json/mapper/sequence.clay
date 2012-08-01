@@ -1,0 +1,32 @@
+import json.model.*;
+import json.mapper.*;
+
+
+record SequenceMapper[S] (
+    itemMapper: JsonMapper(SequenceElementType(S)),
+);
+
+[S]
+overload JsonMapperMaps(static SequenceMapper[S]) = S, JsonArray;
+
+[S | Sequence?(S)]
+overload JsonMapper(static S) = SequenceMapper[S];
+
+[S]
+overload mapToJson(m: SequenceMapper[S], s: S) {
+    var a = JsonArray();
+    for (item in s) {
+        push(a, mapToJson(m.itemMapper, item));
+    }
+    return a;
+}
+
+[S]
+overload mapFromJson(m: SequenceMapper[S], j: JsonArray) {
+    var s = S();
+    for (item in j) {
+        push(s, mapFromJson(m.itemMapper, item));
+    }
+    return s;
+}
+

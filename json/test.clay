@@ -4,7 +4,7 @@ import json.modelTest.*;
 import json.parserTest.*;
 import json.escapeTest.*;
 import json.printerTest.*;
-import json.mapperTest.*;
+import json.mapper.mapperTest.*;
 import json.support.decimalTest.*;
 
 jsonTestMain() = testMain(
