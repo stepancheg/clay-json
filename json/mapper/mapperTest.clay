@@ -7,6 +7,7 @@ import json.mapper.boolTest.*;
 import json.mapper.stringTest.*;
 import json.mapper.sequenceTest.*;
 import json.mapper.numericTest.*;
+import json.mapper.jsonTest.*;
 
 mapperTestSuite() =
     mapperBoolTestSuite(),
@@ -14,6 +15,7 @@ mapperTestSuite() =
     mapperSequenceTestSuite(),
     mapperRecordsTestSuite(),
     mapperNumericTestSuite(),
+    mapperJsonTestSuite(),
     ;
 
 mapperTestMain() = testMain(..mapperTestSuite());

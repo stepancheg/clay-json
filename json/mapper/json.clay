@@ -1,0 +1,18 @@
+import json.model.*;
+import json.mapper.*;
+
+[J]
+record JsonVariantMemberMapper[J] ();
+
+[J]
+overload JsonMapperMaps(static JsonVariantMemberMapper[J]) = J, J;
+
+[J | JsonVariantMember?(J)]
+overload JsonMapper(static J) = JsonVariantMemberMapper[J];
+
+[J]
+overload mapToJson(m: JsonVariantMemberMapper[J], j: J) = j;
+
+[J]
+overload mapFromJson(m: JsonVariantMemberMapper[J], j: J) = j;
+

@@ -16,6 +16,8 @@ import json.mapper.sequence.*;
 
 import json.mapper.string.*;
 
+import json.mapper.json.*;
+
 
 [T]
 define JsonMapper(static T);

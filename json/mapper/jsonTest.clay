@@ -1,0 +1,27 @@
+import test.*;
+
+import json.*;
+import json.mapper.*;
+
+mapperJsonTestSuite() =
+    TestSuite(
+        "mapper.json", array(
+            TestCase("JsonBoolean to json", test => {
+                var j = mapToJsonQuick(JsonBoolean(true));
+                expectEqual(test, "JsonBoolean", JsonBoolean(true), j);
+            }),
+            TestCase("JsonBoolean from json", test => {
+                var j = JsonBoolean(false);
+                expectEqual(test, "JsonBoolean", JsonBoolean(false), mapFromJsonQuick(JsonBoolean, j));
+                expectEqual(test, "JsonBoolean", JsonBoolean(false), mapFromJsonQuick(JsonBoolean, JsonValue(j)));
+            }),
+        )
+    );
+
+    
+mapperJsonTestMain() = testMain(mapperJsonTestSuite());
+
+main() = mapperJsonTestMain();
+
+
+
