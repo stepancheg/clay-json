@@ -1,0 +1,26 @@
+import test.*;
+
+import json.*;
+import json.mapper.*;
+
+mapperBoolTestSuite() =
+    TestSuite(
+        "mapper.bool", array(
+            TestCase("bool to json", test => {
+                var j = mapToJsonQuick(true);
+                expectEqual(test, "boolean", JsonBoolean(true), j);
+            }),
+            TestCase("bool from json", test => {
+                var j = JsonBoolean(true);
+                expectEqual(test, "boolean", true, mapFromJsonQuick(Bool, j));
+                expectEqual(test, "boolean", true, mapFromJsonQuick(Bool, JsonValue(j)));
+            }),
+        )
+    );
+
+    
+mapperBoolTestMain() = testMain(mapperBoolTestSuite());
+
+main() = mapperBoolTestMain();
+
+

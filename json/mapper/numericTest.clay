@@ -1,0 +1,30 @@
+import test.*;
+
+import json.*;
+import json.mapper.*;
+
+mapperNumericTestSuite() =
+    TestSuite(
+        "mapper.numeric", array(
+            TestCase("numbers to json", test => {
+                // TODO: float, decimal
+                ..for (i in 1, 2u, 3ul, 4s) {
+                    expectEqual(test, "number", JsonNumber(i), mapToJsonQuick(i));
+                }
+            }),
+            TestCase("numbers from json", test => {
+                // TODO: float, decimal
+                ..for (i in 1, 2u, 3ul, 4s) {
+                    expectEqual(test, "number", i, mapFromJsonQuick(Type(i), JsonNumber(i)));
+                    expectEqual(test, "number", i, mapFromJsonQuick(Type(i), JsonValue(JsonNumber(i))));
+                }
+            }),
+        )
+    );
+
+    
+mapperNumericTestMain() = testMain(mapperNumericTestSuite());
+
+main() = mapperNumericTestMain();
+
+

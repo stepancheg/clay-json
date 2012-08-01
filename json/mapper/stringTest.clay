@@ -1,0 +1,26 @@
+import test.*;
+
+import json.*;
+import json.mapper.*;
+
+mapperStringTestSuite() =
+    TestSuite(
+        "mapper.string", array(
+            TestCase("string to json", test => {
+                var j = mapToJsonQuick(String("bla"));
+                expectEqual(test, "string", JsonString("bla"), j);
+            }),
+            TestCase("string from json", test => {
+                var j = JsonString("The angels have the phone box");
+                expectEqual(test, "string", "The angels have the phone box", mapFromJsonQuick(String, j));
+                expectEqual(test, "string", "The angels have the phone box", mapFromJsonQuick(String, JsonValue(j)));
+            }),
+        )
+    );
+
+    
+mapperStringTestMain() = testMain(mapperStringTestSuite());
+
+main() = mapperStringTestMain();
+
+

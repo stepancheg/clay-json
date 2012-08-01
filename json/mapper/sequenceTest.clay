@@ -1,0 +1,27 @@
+import test.*;
+
+import json.*;
+import json.mapper.*;
+
+mapperSequenceTestSuite() =
+    TestSuite(
+        "mapper.sequence", array(
+            TestCase("Vector[Int] to json", test => {
+                var v = Vector[Int](1, 4, 8, 16);
+                var expected = JsonArray([1, 4, 8, 16]);
+                expectEqual(test, "array", expected, mapToJsonQuick(v));
+            }),
+            TestCase("Vector[Int] from json", test => {
+                var j = JsonArray([2, 3, 4]);
+                var expected = Vector[Int](2, 3, 4);
+                expectEqual(test, "array", expected, mapFromJsonQuick(Vector[Int], j));
+            }),
+        )
+    );
+
+    
+mapperSequenceTestMain() = testMain(mapperSequenceTestSuite());
+
+main() = mapperSequenceTestMain();
+
+

@@ -13,7 +13,7 @@ jsonTestMain() = testMain(
     escapeTestSuite(),
     printerTestSuite(),
     decimalTestSuite(),
-    mapperTestSuite(),
+    ..mapperTestSuite(),
 );
 
 main() = jsonTestMain();

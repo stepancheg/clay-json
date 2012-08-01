@@ -1,0 +1,102 @@
+import test.*;
+
+import json.*;
+import json.mapper.*;
+
+record Album (
+    title: String,
+    year: UInt,
+);
+
+testRecordSimpleToJson(test) {
+    var a = Album(String("Jamaicanization"), 2011u);
+    var j = mapToJsonQuick(a);
+    expectEqual(test, "record", JsonObject([title: "Jamaicanization", year: 2011]), j);
+}
+
+testRecordSimpleFromJson(test) {
+    var j = JsonObject([title: "Wildhoney", year: 1994]);
+    var expected = Album(String("Wildhoney"), 1994u);
+    expectEqual(test, "record", expected, mapFromJsonQuick(Album, j));
+    expectEqual(test, "record", expected, mapFromJsonQuick(Album, JsonValue(j)));
+}
+
+record Result (
+    successful: Bool,
+    returnValue: String,
+);
+
+overload RecordJsonFieldName(static Result, static #"returnValue") = #"return";
+
+testRecordWithCustomStaticFieldNameToJson(test) {
+    var r = Result(true, String("yep"));
+    var j = mapToJsonQuick(r);
+    expectEqual(test, "record", JsonObject([["successful", true], ["return", "yep"]]), j);
+}
+
+testRecordWithCustomStaticFieldNameFromJson(test) {
+    var j = JsonObject([["successful", false], ["return", "no"]]);
+    var expected = Result(false, String("no"));
+    expectEqual(test, "record", expected, mapFromJsonQuick(Result, j));
+    expectEqual(test, "record", expected, mapFromJsonQuick(Result, JsonValue(j)));
+}
+
+
+record Building (
+    height: Int,
+);
+
+overload recordJsonFieldName(static Building, static #"height") = str("height", size("height"));
+
+testRecordWithCustomDynamicFieldNameToJson(test) {
+    var r = Building(100);
+    var j = mapToJsonQuick(r);
+    expectEqual(test, "record", JsonObject([height6: 100]), j);
+}
+
+testRecordWithCustomDynamicFieldNameFromJson(test) {
+    var j = JsonObject([height6: 22]);
+    var expected = Building(22);
+    expectEqual(test, "record", expected, mapFromJsonQuick(Building, j));
+}
+
+
+record RecordWithTransientField (
+    color: String,
+    colorNumberCache: Int,
+);
+
+overload IncludeRecordJsonField(static RecordWithTransientField, static #"colorNumberCache") = false;
+
+testRecordWithExcludedFieldToJson(test) {
+    var r = RecordWithTransientField(String("red"), 0xff0000);
+    var j = mapToJsonQuick(r);
+    expectEqual(test, "record", JsonObject([color: "red"]), j);
+}
+
+testRecordWithExcludedFieldFromJson(test) {
+    var j = JsonObject([color: "blue"]);
+    var expected = RecordWithTransientField(String("blue"), 0);
+    expectEqual(test, "record", expected, mapFromJsonQuick(RecordWithTransientField, j));
+}
+
+
+mapperRecordsTestSuite() =
+    TestSuite(
+        "mapper.records", array(
+            TestCase("record simple to json", testRecordSimpleToJson),
+            TestCase("record simple from json", testRecordSimpleFromJson),
+            TestCase("record with custom static field name to json", testRecordWithCustomStaticFieldNameToJson),
+            TestCase("record with custom static field name from json", testRecordWithCustomStaticFieldNameFromJson),
+            TestCase("record with custom dynamic field name to json", testRecordWithCustomDynamicFieldNameToJson),
+            TestCase("record with custom dynamic field name from json", testRecordWithCustomDynamicFieldNameFromJson),
+            TestCase("record with excluded field to json", testRecordWithExcludedFieldToJson),
+            TestCase("record with excluded field from json", testRecordWithExcludedFieldFromJson),
+        )
+    );
+
+    
+mapperRecordsTestMain() = testMain(mapperRecordsTestSuite());
+
+main() = mapperRecordsTestMain();
+
