@@ -1,0 +1,2 @@
+[R, Name | Record?(R)]
+RecordFieldTypeByName(static R, static Name) = Type(fieldRef(null(R)^, Name));

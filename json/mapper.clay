@@ -1,7 +1,8 @@
 import lambdas.*;
 
 import json.*;
-import json.support.filterValues.*;
+import json.support.values.*;
+import json.support.records.*;
 
 [T]
 define JsonMapper(static T);
@@ -103,29 +104,26 @@ overload recordFieldJsonNameHolderGet(r: RecordFieldJsonNameHolderDynamic[R, Fie
 [R, FieldName]
 record RecordFieldJsonMapper[R, FieldName] (
     jsonNameHolder: RecordFieldJsonNameHolder(static R, static FieldName),
+    valueMapper: JsonMapper(RecordFieldTypeByName(R, FieldName)),
 );
 
 [R, FieldName]
-RecordJsonFieldMapperFieldName(static RecordFieldJsonMapper[R, FieldName]) = FieldName;
+RecordFieldJsonMapperFieldName(static RecordFieldJsonMapper[R, FieldName]) = FieldName;
 
 [M, R]
 mapRecordFieldToJson(m: M, r: R, j) {
-    alias FieldName = RecordJsonFieldMapperFieldName(M);
+    alias FieldName = RecordFieldJsonMapperFieldName(M);
     var jsonName = recordFieldJsonNameHolderGet(m.jsonNameHolder);
-    // TODO: compute statically
-    var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, FieldName)));
-    var v = JsonValue(mapToJson(fieldMapper, fieldRef(r, FieldName)));
+    var v = JsonValue(mapToJson(m.valueMapper, fieldRef(r, FieldName)));
     put(j, jsonName, v);
 }
 
 [M, R]
 mapRecordFieldFromJson(m: M, j, r: R) {
-    alias FieldName = RecordJsonFieldMapperFieldName(M);
+    alias FieldName = RecordFieldJsonMapperFieldName(M);
     var jsonName = recordFieldJsonNameHolderGet(m.jsonNameHolder);
-    // TODO: compute statically
-    var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, FieldName)));
     var jsonFieldValue = index(j, jsonName);
-    fieldRef(r, FieldName) = mapFromJson(fieldMapper, jsonFieldValue);
+    fieldRef(r, FieldName) = mapFromJson(m.valueMapper, jsonFieldValue);
 }
 
 
