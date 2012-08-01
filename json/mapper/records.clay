@@ -24,55 +24,55 @@ IncludeRecordJsonField(static R, static N) = true;
 
 // field json name holder
 
-RecordFieldJsonNameHolder?(T) = false;
-[R | RecordFieldJsonNameHolder?(R)]
-define recordFieldJsonNameHolderGet(r: R);
+JsonNameHolder?(T) = false;
+[R | JsonNameHolder?(R)]
+define jsonNameHolderGet(r: R);
 
 [R, FieldName]
-define RecordFieldJsonNameHolder(static R, static FieldName);
+define JsonNameHolder(static R, static FieldName);
 
 
 // static name holder
 
-record RecordFieldJsonNameHolderStatic[JsonFieldName] ();
+record JsonNameHolderStatic[JsonFieldName] ();
 
 [JsonFieldName]
-overload RecordFieldJsonNameHolder?(static RecordFieldJsonNameHolderStatic[JsonFieldName]) = true;
+overload JsonNameHolder?(static JsonNameHolderStatic[JsonFieldName]) = true;
 
 [R, FieldName]
-overload RecordFieldJsonNameHolder(static R, static FieldName) =
-    RecordFieldJsonNameHolderStatic[RecordJsonFieldName(R, FieldName)];
+overload JsonNameHolder(static R, static FieldName) =
+    JsonNameHolderStatic[RecordJsonFieldName(R, FieldName)];
 
 [JsonFieldName]
-overload recordFieldJsonNameHolderGet(r: RecordFieldJsonNameHolderStatic[JsonFieldName]) = StaticName(JsonFieldName);
+overload jsonNameHolderGet(r: JsonNameHolderStatic[JsonFieldName]) = StaticName(JsonFieldName);
 
 // dynamic name holder
 
 [R, FieldName]
-record RecordFieldJsonNameHolderDynamic[R, FieldName] (
+record JsonNameHolderDynamic[R, FieldName] (
     jsonFieldName: String,
 );
 
 [R, FieldName]
-overload RecordFieldJsonNameHolderDynamic[R, FieldName]() =
-    RecordFieldJsonNameHolderDynamic[R, FieldName](recordJsonFieldName(R, FieldName));
+overload JsonNameHolderDynamic[R, FieldName]() =
+    JsonNameHolderDynamic[R, FieldName](recordJsonFieldName(R, FieldName));
 
 [R, FieldName]
-overload RecordFieldJsonNameHolder?(static RecordFieldJsonNameHolderDynamic[R, FieldName]) = true;
+overload JsonNameHolder?(static JsonNameHolderDynamic[R, FieldName]) = true;
 
 [R, FieldName | CallDefined?(recordJsonFieldName, Static[R], Static[FieldName])]
-overload RecordFieldJsonNameHolder(static R, static FieldName) =
-    RecordFieldJsonNameHolderDynamic[R, FieldName];
+overload JsonNameHolder(static R, static FieldName) =
+    JsonNameHolderDynamic[R, FieldName];
 
 [R, FieldName]
-overload recordFieldJsonNameHolderGet(r: RecordFieldJsonNameHolderDynamic[R, FieldName]) = r.jsonFieldName;
+overload jsonNameHolderGet(r: JsonNameHolderDynamic[R, FieldName]) = r.jsonFieldName;
 
 
 // 
 
 [R, FieldName]
 record RecordFieldJsonMapper[R, FieldName] (
-    jsonNameHolder: RecordFieldJsonNameHolder(static R, static FieldName),
+    jsonNameHolder: JsonNameHolder(static R, static FieldName),
     valueMapper: JsonMapper(RecordFieldTypeByName(R, FieldName)),
 );
 
@@ -82,7 +82,7 @@ RecordFieldJsonMapperFieldName(static RecordFieldJsonMapper[R, FieldName]) = Fie
 [M, R]
 mapRecordFieldToJson(m: M, r: R, j) {
     alias FieldName = RecordFieldJsonMapperFieldName(M);
-    var jsonName = recordFieldJsonNameHolderGet(m.jsonNameHolder);
+    var jsonName = jsonNameHolderGet(m.jsonNameHolder);
     var v = JsonValue(mapToJson(m.valueMapper, fieldRef(r, FieldName)));
     put(j, jsonName, v);
 }
@@ -90,7 +90,7 @@ mapRecordFieldToJson(m: M, r: R, j) {
 [M, R]
 mapRecordFieldFromJson(m: M, j, r: R) {
     alias FieldName = RecordFieldJsonMapperFieldName(M);
-    var jsonName = recordFieldJsonNameHolderGet(m.jsonNameHolder);
+    var jsonName = jsonNameHolderGet(m.jsonNameHolder);
     var jsonFieldValue = index(j, jsonName);
     fieldRef(r, FieldName) = mapFromJson(m.valueMapper, jsonFieldValue);
 }
