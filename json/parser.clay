@@ -172,7 +172,7 @@ private var tokenParser = choice(
     stringTokenParser,
 );
 
-var spaceParser = zeroOrMore(choice(' ', '\t', '\r', '\n')); // TODO: lame
+var spaceParser = zeroOrMore(condition(space?));
 
 var tokensParser = modify(x -> x.1, [spaceParser, separatedList(spaceParser, tokenParser), spaceParser]);
 
