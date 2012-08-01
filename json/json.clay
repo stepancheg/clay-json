@@ -1,4 +1,5 @@
 public import json.model.*;
 public import json.printer.*;
+public import json.parser.*;
 public import json.support.decimal.*;
 
