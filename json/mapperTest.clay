@@ -2,34 +2,89 @@ import test.*;
 
 import json.*;
 import json.mapper.*;
-import json.parser.*;
 
 record Album (
     title: String,
     year: UInt,
 );
 
+testRecordSimpleToJson(test) {
+    var a = Album(String("Jamaicanization"), 2011u);
+    var j = mapToJsonQuick(a);
+    expectEqual(test, "record", JsonObject([title: "Jamaicanization", year: 2011]), j);
+}
+
+testRecordSimpleFromJson(test) {
+    var j = JsonObject([title: "Wildhoney", year: 1994]);
+    var expected = Album(String("Wildhoney"), 1994u);
+    expectEqual(test, "record", expected, mapFromJsonQuick(Album, j));
+    expectEqual(test, "record", expected, mapFromJsonQuick(Album, JsonValue(j)));
+}
+
+record Result (
+    successful: Bool,
+    returnValue: String,
+);
+
+overload recordJsonFieldName(static Result, static #"returnValue") = "return";
+
+testRecordWithCustomFieldNameToJson(test) {
+    var r = Result(true, String("yep"));
+    var j = mapToJsonQuick(r);
+    expectEqual(test, "record", JsonObject([["successful", true], ["return", "yep"]]), j);
+}
+
+testRecordWithCustomFieldNameFromJson(test) {
+    var j = JsonObject([["successful", false], ["return", "no"]]);
+    var expected = Result(false, String("no"));
+    expectEqual(test, "record", expected, mapFromJsonQuick(Result, j));
+    expectEqual(test, "record", expected, mapFromJsonQuick(Result, JsonValue(j)));
+}
+
+
 mapperTestSuite() =
     TestSuite(
         "mapper", array(
-            TestCase("to json simple", test => {
-                var a = Album();
-                a.title = String("Pandora's Pinata");
-                a.year = 2012;
-                var j = mapToJson(a);
-                expectEqual(test, "title", "Pandora's Pinata", String(j.title));
-                expectEqual(test, "year", 2012, UInt(j.year));
+            TestCase("string to json", test => {
+                var j = mapToJsonQuick(String("bla"));
+                expectEqual(test, "string", JsonString("bla"), j);
             }),
-            TestCase("from json simple", test => {
-                var j = parseJson("""{ "title": "Life for Rent", "year": 2003 }""");
-                var a = mapFromJson(Album, j);
-                expectEqual(test, "title", "Life for Rent", a.title);
-                expectEqual(test, "year", 2003, a.year);
+            TestCase("string from json", test => {
+                var j = JsonString("The angels have the phone box");
+                expectEqual(test, "string", "The angels have the phone box", mapFromJsonQuick(String, j));
+                expectEqual(test, "string", "The angels have the phone box", mapFromJsonQuick(String, JsonValue(j)));
             }),
+            TestCase("numbers to json", test => {
+                // TODO: float, decimal
+                ..for (i in 1, 2u, 3ul, 4s) {
+                    expectEqual(test, "number", JsonNumber(i), mapToJsonQuick(i));
+                }
+            }),
+            TestCase("numbers from json", test => {
+                // TODO: float, decimal
+                ..for (i in 1, 2u, 3ul, 4s) {
+                    expectEqual(test, "number", i, mapFromJsonQuick(Type(i), JsonNumber(i)));
+                    expectEqual(test, "number", i, mapFromJsonQuick(Type(i), JsonValue(JsonNumber(i))));
+                }
+            }),
+            TestCase("bool to json", test => {
+                var j = mapToJsonQuick(true);
+                expectEqual(test, "boolean", JsonBoolean(true), j);
+            }),
+            TestCase("bool from json", test => {
+                var j = JsonBoolean(true);
+                expectEqual(test, "boolean", true, mapFromJsonQuick(Bool, j));
+                expectEqual(test, "boolean", true, mapFromJsonQuick(Bool, JsonValue(j)));
+            }),
+            TestCase("record simple to json", testRecordSimpleToJson),
+            TestCase("record simple from json", testRecordSimpleFromJson),
+            TestCase("record with custom field name to json", testRecordWithCustomFieldNameToJson),
+            TestCase("record with custom field name from json", testRecordWithCustomFieldNameFromJson),
         )
     );
 
 mapperTestMain() = testMain(mapperTestSuite());
 
 main() = mapperTestMain();
+
 

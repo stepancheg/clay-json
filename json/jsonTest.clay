@@ -6,6 +6,12 @@ import json.*;
 jsonTestSuite() =
     TestSuite(
         "json model", array(
+            // JsonNumber tests
+            TestCase("Int(JsonNumber)", test => {
+                expectEqual(test, "number", 12, Int(JsonNumber(12)));
+                expectEqual(test, "number", 13l, Int(JsonValue(13l)));
+            }),
+            
             // JsonArray tests
             TestCase("JsonValue(rvalue JsonArray)", test => {
                 var v = JsonValue(JsonArray());

@@ -67,16 +67,10 @@ private convertToFloat(static F, d: Decimal) =
     // TODO: lame
     F(str(d));
 
-overload Int(d: Decimal) = convertToInteger(Int, d);
-overload UInt(d: Decimal) = convertToInteger(UInt, d);
-overload Int32(d: Decimal) = convertToInteger(Int32, d);
-overload Int64(d: Decimal) = convertToInteger(Int64, d);
-overload UInt32(d: Decimal) = convertToInteger(UInt32, d);
-overload UInt64(d: Decimal) = convertToInteger(UInt64, d);
-
-overload Float(d: Decimal) = convertToFloat(Float, d);
-overload Float32(d: Decimal) = convertToFloat(Float32, d);
-overload Float64(d: Decimal) = convertToFloat(Float64, d);
+[N | Integer?(N)]
+overload N(d: Decimal) = convertToInteger(N, d);
+[N | Float?(N)]
+overload N(d: Decimal) = convertToFloat(N, d);
 
 changeScale(d: Decimal, scale) =
     Decimal(exp10(d.unscaled, d.scale - scale), scale);

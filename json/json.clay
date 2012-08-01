@@ -66,6 +66,12 @@ overload String(value: JsonValue) = getString(value).value;
 [N | N != Decimal and N != JsonNumber]
 overload JsonNumber(n: N) = JsonNumber(Decimal(n));
 
+[N | Numeric?(N)]
+overload N(j: JsonNumber) = N(j.value);
+
+[N | Numeric?(N)]
+overload N(j: JsonValue) = N(getNumber(j));
+
 [S | S != String and S != JsonString]
 overload JsonString(s: S) = JsonString(String(s));
 

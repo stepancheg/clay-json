@@ -1,65 +1,163 @@
+import lambdas.*;
+
 import json.*;
 
-define mapToJson(r);
+[T]
+define jsonMapper(static T);
+
+[M]
+JsonMapper?(static M) = false;
+
+[M | JsonMapper?(M)]
+define JsonMapperMaps(static M);
+
+[M]
+JsonMapperMapsFrom(static M) = nthValue(static 0, ..JsonMapperMaps(M));
+[M]
+JsonMapperMapsTo(static M) = nthValue(static 1, ..JsonMapperMaps(M));
+
+[M, T | JsonMapper?(M) and JsonMapperMapsFrom(M) == T]
+define mapToJson(m: M, t: T);
+
+[M, J | JsonMapper?(M) and JsonAnything?(J)]
+define mapFromJson(m: M, j: J);
+
+
+[M | JsonMapper?(M)]
+overload mapFromJson(m: M, j: JsonValue) =
+    mapFromJson(m, variantAs(j, JsonMapperMapsTo(M)));
+
+
+/// record mapper
+
+alias RecordFieldMapper[R] = Lambda[[R, JsonObject], []];
+alias RecordFieldUnmapper[R] = Lambda[[JsonObject, R], []];
+
+record RecordJsonMapper[R] (
+    // TODO: avoid lambda
+    fieldMappers: Vector[RecordFieldMapper[R]],
+    fieldUnmappers: Vector[RecordFieldUnmapper[R]],
+);
+
+overload JsonMapper?(RecordJsonMapper) = true;
 [R]
-define mapFromJson(static R, j): R;
+overload JsonMapperMaps(static RecordJsonMapper[R]) = R, JsonObject;
+
 
 [R | Record?(R)]
-overload mapToJson(r: R) {
-    var j = JsonObject();
-    ..for (fieldName in RecordFieldNames(R)) {
-        var fieldJson = mapRecordFieldToJson(r, fieldName);
-        put(j, fieldName, fieldJson);
-    }
-    return JsonValue(j);
-}
+overload jsonMapper(static R) =
+    recordJsonMapper(R);
 
 [R | Record?(R)]
-overload mapFromJson(static R, j: JsonObject) {
-    var r = R();
-    ..for (fieldName in RecordFieldNames(R)) {
-        var fieldJson = index(j, fieldName);
-        mapRecordFieldFromJson(r, fieldName, fieldJson);
+recordJsonMapper(static R) {
+    var r = RecordJsonMapper[R]();
+    ..for (f in RecordFieldNames(R)) {
+        push(r.fieldMappers, recordJsonFieldMapper(R, f));
+        push(r.fieldUnmappers, recordJsonFieldUnmapper(R, f));
     }
     return r;
 }
 
-[R | Record?(R)]
-overload mapFromJson(static R, j: JsonValue) =
-    mapFromJson(static R, getObject(j));
-
-[R | Record?(R)]
-overload mapFromJson(static R, j: JsonValue) =
-    mapFromJson(static R, getObject(j));
-
-mapRecordFieldToJson(r, fieldName) =
-    mapToJson(fieldRef(r, fieldName));
-
-mapRecordFieldFromJson(r, fieldName, j) {
-    ref field = fieldRef(r, fieldName);
-    field = mapFromJson(Type(field), j);
+[R, N]
+recordJsonFieldMapper(static R, static N) {
+    var jsonFieldName = recordJsonFieldName(R, N);
+    var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, N)));
+    return RecordFieldMapper[R](
+        (r: R, j: JsonObject) => {
+            var v = JsonValue(mapToJson(fieldMapper, fieldRef(r, N)));
+            put(j, jsonFieldName, v);
+        });
 }
 
-[S | String?(S)]
-overload mapToJson(s: S) = JsonString(s);
+[R, N]
+recordJsonFieldUnmapper(static R, static N) {
+    var jsonFieldName = recordJsonFieldName(R, N);
+    var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, N)));
+    return RecordFieldUnmapper[R](
+        (j: JsonObject, r: R) => {
+            var jsonFieldValue = index(j, jsonFieldName);
+            fieldRef(r, N) = mapFromJson(fieldMapper, jsonFieldValue);
+        });
+}
+
+[R, N]
+recordJsonFieldName(static R, static N) = N;
+
+
+[R]
+overload mapToJson(m: RecordJsonMapper[R], r: R) {
+    var j = JsonObject();
+    for (fieldMapper in m.fieldMappers) {
+        fieldMapper(r, j);
+    }
+    return j;
+}
+
+[R]
+overload mapFromJson(m: RecordJsonMapper[R], j: JsonObject) {
+    var r = R();
+    for (fieldUnmapper in m.fieldUnmappers) {
+        fieldUnmapper(j, r);
+    }
+    return r;
+}
+
+/// string mapper
+
+
+record StringJsonMapper ();
+
+overload JsonMapper?(static StringJsonMapper) = true;
+overload JsonMapperMaps(static StringJsonMapper) = String, JsonString;
+
+overload jsonMapper(static String) = StringJsonMapper();
+
+overload mapToJson(m: StringJsonMapper, s: String) = JsonString(s);
+
+overload mapFromJson(m: StringJsonMapper, j: JsonString) = j.value;
+
+
+/// numeric mapper
 
 [N | Numeric?(N)]
-overload mapToJson(n: N) = JsonNumber(n);
+record NumericJsonMapper[N]();
 
-
-[S | String?(S)]
-overload mapFromJson(static S, value: JsonString) =
-    S(value.value);
-
-[S | String?(S)]
-overload mapFromJson(static S, value: JsonValue) =
-    mapFromJson(S, getString(value));
-
+[N]
+overload JsonMapper?(static NumericJsonMapper[N]) = true;
+[N]
+overload JsonMapperMaps(static NumericJsonMapper[N]) = N, JsonNumber;
 
 [N | Numeric?(N)]
-overload mapFromJson(static N, value: JsonNumber) =
-    N(value.value);
+overload jsonMapper(static N) = NumericJsonMapper[N]();
 
-[N | Numeric?(N)]
-overload mapFromJson(static N, value: JsonValue) =
-    mapFromJson(N, getNumber(value));
+[N]
+overload mapToJson(m: NumericJsonMapper[N], n: N) = JsonNumber(n);
+
+[N]
+overload mapFromJson(m: NumericJsonMapper[N], j: JsonNumber) = N(j);
+
+
+/// bool mapper
+
+record BoolMapper();
+
+overload JsonMapper?(static BoolMapper) = true;
+overload JsonMapperMaps(static BoolMapper) = Bool, JsonBoolean;
+
+overload jsonMapper(static Bool) = BoolMapper();
+
+overload mapToJson(m: BoolMapper, b: Bool) = JsonBoolean(b);
+
+overload mapFromJson(m: BoolMapper, j: JsonBoolean) = j.value;
+
+
+
+/// quick functions construct mapper and then unmap using that mapper
+/// these functions can be expension if mapper construction is expensive
+
+[T]
+mapToJsonQuick(t: T) = mapToJson(jsonMapper(static T), t);
+
+[T, J | JsonAnything?(J)]
+mapFromJsonQuick(static T, j: J) = mapFromJson(jsonMapper(T), j);
+
