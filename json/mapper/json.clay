@@ -16,3 +16,13 @@ overload mapToJson(m: JsonVariantMemberMapper[J], j: J) = j;
 [J]
 overload mapFromJson(m: JsonVariantMemberMapper[J], j: J) = j;
 
+
+record JsonValueMapper ();
+
+overload JsonMapperMaps(static JsonValueMapper) = JsonValue, JsonValue;
+
+overload JsonMapper(static JsonValue) = JsonValueMapper;
+
+overload mapToJson(m: JsonValueMapper, j: JsonValue) = j;
+
+overload mapFromJson(m: JsonValueMapper, j: JsonValue) = j;

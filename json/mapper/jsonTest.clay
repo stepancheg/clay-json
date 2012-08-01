@@ -15,6 +15,14 @@ mapperJsonTestSuite() =
                 expectEqual(test, "JsonBoolean", JsonBoolean(false), mapFromJsonQuick(JsonBoolean, j));
                 expectEqual(test, "JsonBoolean", JsonBoolean(false), mapFromJsonQuick(JsonBoolean, JsonValue(j)));
             }),
+            TestCase("JsonValue to json", test => {
+                var j = mapToJsonQuick(JsonValue(JsonString("hi")));
+                expectEqual(test, "JsonValue", JsonValue(JsonString("hi")), j);
+            }),
+            TestCase("JsonValue from json", test => {
+                var j = JsonValue(JsonBoolean(false));
+                expectEqual(test, "JsonValue", JsonValue(JsonBoolean(false)), mapFromJsonQuick(JsonValue, j));
+            }),
         )
     );
 

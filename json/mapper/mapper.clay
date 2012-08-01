@@ -43,7 +43,7 @@ define mapToJson(m: M, t: T);
 define mapFromJson(m: M, j: J);
 
 
-[M | JsonMapper?(M)]
+[M | JsonMapper?(M) and JsonMapperMapsTo(M) != JsonValue]
 overload mapFromJson(m: M, j: JsonValue) =
     mapFromJson(m, variantAs(j, JsonMapperMapsTo(M)));
 
