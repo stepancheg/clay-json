@@ -1,21 +1,21 @@
 import test.*;
 
-import json.*;
-import json.mapper.*;
-import json.mapper.recordsTest.*;
 import json.mapper.boolTest.*;
-import json.mapper.stringTest.*;
-import json.mapper.sequenceTest.*;
-import json.mapper.numericTest.*;
 import json.mapper.jsonTest.*;
+import json.mapper.numericTest.*;
+import json.mapper.recordsTest.*;
+import json.mapper.sequenceTest.*;
+import json.mapper.stringTest.*;
+import json.mapper.tupleTest.*;
 
 mapperTestSuite() =
     mapperBoolTestSuite(),
-    mapperStringTestSuite(),
-    mapperSequenceTestSuite(),
-    mapperRecordsTestSuite(),
-    mapperNumericTestSuite(),
     mapperJsonTestSuite(),
+    mapperNumericTestSuite(),
+    mapperRecordsTestSuite(),
+    mapperSequenceTestSuite(),
+    mapperStringTestSuite(),
+    mapperTupleTestSuite(),
     ;
 
 mapperTestMain() = testMain(..mapperTestSuite());

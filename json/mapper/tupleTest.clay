@@ -1,0 +1,26 @@
+import test.*;
+
+import json.*;
+import json.mapper.*;
+
+mapperTupleTestSuite() =
+    TestSuite(
+        "mapper.tuple", array(
+            TestCase("tuple to json", test => {
+                var j = mapToJsonQuick([1, "a", [true]]);
+                expectEqual(test, "tuple", JsonArray([1, "a", JsonArray([true])]), j);
+            }),
+            TestCase("tuple from json", test => {
+                var j = JsonArray([2, "b", JsonArray([true])]);
+                expectEqual(test, "tuple", [2, String("b"), [true]], mapFromJsonQuick(Tuple[Int, String, Tuple[Bool]], j));
+            }),
+        )
+    );
+
+    
+mapperTupleTestMain() = testMain(mapperTupleTestSuite());
+
+main() = mapperTupleTestMain();
+
+
+

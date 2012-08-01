@@ -18,6 +18,8 @@ import json.mapper.string.*;
 
 import json.mapper.json.*;
 
+import json.mapper.tuple.*;
+
 
 [T]
 define JsonMapper(static T);

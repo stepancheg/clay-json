@@ -15,6 +15,10 @@ mapperStringTestSuite() =
                 expectEqual(test, "string", "The angels have the phone box", mapFromJsonQuick(String, j));
                 expectEqual(test, "string", "The angels have the phone box", mapFromJsonQuick(String, JsonValue(j)));
             }),
+            TestCase("StringConstant to json", test => {
+                var j = mapToJsonQuick("yo");
+                expectEqual(test, "string constant", JsonString("yo"), j);
+            }),
         )
     );
 
