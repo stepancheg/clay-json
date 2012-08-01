@@ -10,10 +10,10 @@ define JsonMapper(static T);
 jsonMapper(static T) = JsonMapper(T)();
 
 [M]
-JsonMapper?(static M) = false;
-
-[M | JsonMapper?(M)]
 define JsonMapperMaps(static M);
+
+[M]
+JsonMapper?(static M) = CallDefined?(JsonMapperMaps, Static[M]);
 
 [M]
 JsonMapperMapsFrom(static M) = nthValue(static 0, ..JsonMapperMaps(M));
@@ -115,7 +115,6 @@ MakeRecordJsonMapper(static R) {
 
 record RecordJsonMapper[R] = ..MakeRecordJsonMapper(R);
 
-overload JsonMapper?(RecordJsonMapper) = true;
 [R]
 overload JsonMapperMaps(static RecordJsonMapper[R]) = R, JsonObject;
 
@@ -168,8 +167,6 @@ record SequenceMapper[S] (
 );
 
 [S]
-overload JsonMapper?(static SequenceMapper[S]) = true;
-[S]
 overload JsonMapperMaps(static SequenceMapper[S]) = S, JsonArray;
 
 [S | Sequence?(S)]
@@ -199,7 +196,6 @@ overload mapFromJson(m: SequenceMapper[S], j: JsonArray) {
 
 record StringJsonMapper ();
 
-overload JsonMapper?(static StringJsonMapper) = true;
 overload JsonMapperMaps(static StringJsonMapper) = String, JsonString;
 
 overload JsonMapper(static String) = StringJsonMapper;
@@ -214,8 +210,6 @@ overload mapFromJson(m: StringJsonMapper, j: JsonString) = j.value;
 [N | Numeric?(N)]
 record NumericJsonMapper[N]();
 
-[N]
-overload JsonMapper?(static NumericJsonMapper[N]) = true;
 [N]
 overload JsonMapperMaps(static NumericJsonMapper[N]) = N, JsonNumber;
 
@@ -233,7 +227,6 @@ overload mapFromJson(m: NumericJsonMapper[N], j: JsonNumber) = N(j);
 
 record BoolMapper();
 
-overload JsonMapper?(static BoolMapper) = true;
 overload JsonMapperMaps(static BoolMapper) = Bool, JsonBoolean;
 
 overload JsonMapper(static Bool) = BoolMapper;
