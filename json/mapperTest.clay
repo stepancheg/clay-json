@@ -28,17 +28,36 @@ record Result (
 
 overload RecordJsonFieldName(static Result, static #"returnValue") = #"return";
 
-testRecordWithCustomFieldNameToJson(test) {
+testRecordWithCustomStaticFieldNameToJson(test) {
     var r = Result(true, String("yep"));
     var j = mapToJsonQuick(r);
     expectEqual(test, "record", JsonObject([["successful", true], ["return", "yep"]]), j);
 }
 
-testRecordWithCustomFieldNameFromJson(test) {
+testRecordWithCustomStaticFieldNameFromJson(test) {
     var j = JsonObject([["successful", false], ["return", "no"]]);
     var expected = Result(false, String("no"));
     expectEqual(test, "record", expected, mapFromJsonQuick(Result, j));
     expectEqual(test, "record", expected, mapFromJsonQuick(Result, JsonValue(j)));
+}
+
+
+record Building (
+    height: Int,
+);
+
+overload recordJsonFieldName(static Building, static #"height") = str("height", size("height"));
+
+testRecordWithCustomDynamicFieldNameToJson(test) {
+    var r = Building(100);
+    var j = mapToJsonQuick(r);
+    expectEqual(test, "record", JsonObject([height6: 100]), j);
+}
+
+testRecordWithCustomDynamicFieldNameFromJson(test) {
+    var j = JsonObject([height6: 22]);
+    var expected = Building(22);
+    expectEqual(test, "record", expected, mapFromJsonQuick(Building, j));
 }
 
 
@@ -98,8 +117,10 @@ mapperTestSuite() =
             }),
             TestCase("record simple to json", testRecordSimpleToJson),
             TestCase("record simple from json", testRecordSimpleFromJson),
-            TestCase("record with custom field name to json", testRecordWithCustomFieldNameToJson),
-            TestCase("record with custom field name from json", testRecordWithCustomFieldNameFromJson),
+            TestCase("record with custom static field name to json", testRecordWithCustomStaticFieldNameToJson),
+            TestCase("record with custom static field name from json", testRecordWithCustomStaticFieldNameFromJson),
+            TestCase("record with custom dynamic field name to json", testRecordWithCustomDynamicFieldNameToJson),
+            TestCase("record with custom dynamic field name from json", testRecordWithCustomDynamicFieldNameFromJson),
             TestCase("record with excluded field to json", testRecordWithExcludedFieldToJson),
             TestCase("record with excluded field from json", testRecordWithExcludedFieldFromJson),
         )

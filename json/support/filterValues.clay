@@ -1,0 +1,10 @@
+define filterValues;
+
+overload filterValues(pred) = ;
+
+[Pred, First | Pred(First)]
+overload filterValues(static Pred, static First, ..xs) = First, ..filterValues(Pred, ..xs);
+
+[Pred, First | not Pred(First)]
+overload filterValues(static Pred, static First, ..xs) = ..filterValues(Pred, ..xs);
+

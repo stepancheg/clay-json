@@ -1,6 +1,7 @@
 import lambdas.*;
 
 import json.*;
+import json.support.filterValues.*;
 
 [T]
 define jsonMapper(static T);
@@ -32,8 +33,15 @@ overload mapFromJson(m: M, j: JsonValue) =
 
 
 // overload to specify custom json field name for record field
+// executed at compile time, must return static
 [R, N]
 RecordJsonFieldName(static R, static N) = N;
+
+// overload to specify custon json field name for record field
+// execute at mapper construction time, so mapToJsonQuick may be slow
+// necessary when field name cannot be computed at compile time
+[R, N]
+define recordJsonFieldName(static R, static N);
 
 // overload to exclude some field from serialization and deserialization
 [R, N]
@@ -41,25 +49,64 @@ IncludeRecordJsonField(static R, static N) = true;
 
 
 
+RecordJsonFieldMapper?(T) = false;
+
+define recordJsonFieldMapperJsonFieldName(m);
+[M | RecordJsonFieldMapper?(M)]
+define RecordJsonFieldMapperFieldName(static M);
+
+
 [R, N, JsonFieldName]
-record RecordJsonFieldMapper[R, N, JsonFieldName](
+record RecordJsonFieldMapperStaticName[R, N, JsonFieldName] (
 );
 
+[R, FieldName, JsonFieldName]
+overload RecordJsonFieldMapper?(static RecordJsonFieldMapperStaticName[R, FieldName, JsonFieldName]) = true;
 
-private define filterValues;
+[R, N, JsonFieldName]
+overload recordJsonFieldMapperJsonFieldName(m: RecordJsonFieldMapperStaticName[R, N, JsonFieldName]) =
+    StaticName(JsonFieldName);
 
-overload filterValues(pred) = ;
+[R, N, JsonFieldName]
+overload RecordJsonFieldMapperFieldName(static RecordJsonFieldMapperStaticName[R, N, JsonFieldName]) = N;
 
-[Pred, First | Pred(First)]
-overload filterValues(static Pred, static First, ..xs) = First, ..filterValues(Pred, ..xs);
 
-[Pred, First | not Pred(First)]
-overload filterValues(static Pred, static First, ..xs) = ..filterValues(Pred, ..xs);
+[R, N]
+record RecordJsonFieldMapperComputedName[R, N] (
+    jsonFieldName: String,
+);
+
+[R, FieldName]
+overload RecordJsonFieldMapper?(static RecordJsonFieldMapperComputedName[R, FieldName]) = true;
+
+[R, N]
+overload RecordJsonFieldMapperComputedName[R, N]() {
+    return RecordJsonFieldMapperComputedName[R, N](recordJsonFieldName(R, N));
+}
+
+[R, N]
+overload recordJsonFieldMapperJsonFieldName(m: RecordJsonFieldMapperComputedName[R, N]) =
+    m.jsonFieldName;
+
+[R, N]
+overload RecordJsonFieldMapperFieldName(static RecordJsonFieldMapperComputedName[R, N]) = N;
+
+
+[R, FieldName]
+define RecordJsonFieldMapper(static R, static FieldName);
+
+[R, FieldName]
+overload RecordJsonFieldMapper(static R, static FieldName) =
+    RecordJsonFieldMapperStaticName[R, FieldName, RecordJsonFieldName(R, FieldName)];
+
+[R, FieldName | CallDefined?(recordJsonFieldName, Static[R], Static[FieldName])]
+overload RecordJsonFieldMapper(static R, static FieldName) =
+    RecordJsonFieldMapperComputedName[R, FieldName];
 
 
 [R]
 MakeRecordJsonMapper(static R) {
-    var f = name -> [static name, RecordJsonFieldMapper[R, name, RecordJsonFieldName(R, name)]];
+    var f = name -> [static name, RecordJsonFieldMapper(R, name)];
     return ..mapValues(f, ..filterValues(Name -> IncludeRecordJsonField(R, Name), ..RecordFieldNames(R)));
 }
 
@@ -73,18 +120,21 @@ overload JsonMapperMaps(static RecordJsonMapper[R]) = R, JsonObject;
 [R | Record?(R)]
 overload jsonMapper(static R) = RecordJsonMapper[R]();
 
-[R, N, JsonFieldName]
-mapRecordFieldToJson(m: RecordJsonFieldMapper[R, N, JsonFieldName], r: R, j) {
-    var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, N)));
-    var v = JsonValue(mapToJson(fieldMapper, fieldRef(r, N)));
-    put(j, JsonFieldName, v);
+[M, R | RecordJsonFieldMapper?(M)]
+mapRecordFieldToJson(m: M, r: R, j) {
+    alias FieldName = RecordJsonFieldMapperFieldName(M);
+    // TODO: compute statically
+    var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, FieldName)));
+    var v = JsonValue(mapToJson(fieldMapper, fieldRef(r, FieldName)));
+    put(j, recordJsonFieldMapperJsonFieldName(m), v);
 }
 
-[R, N, JsonFieldName]
-mapRecordFieldFromJson(m: RecordJsonFieldMapper[R, N, JsonFieldName], j, r: R) {
-    var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, N)));
-    var jsonFieldValue = index(j, JsonFieldName);
-    fieldRef(r, N) = mapFromJson(fieldMapper, jsonFieldValue);
+[M, R | RecordJsonFieldMapper?(M)]
+mapRecordFieldFromJson(m: M, j, r: R) {
+    alias FieldName = RecordJsonFieldMapperFieldName(M);
+    var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, FieldName)));
+    var jsonFieldValue = index(j, recordJsonFieldMapperJsonFieldName(m));
+    fieldRef(r, FieldName) = mapFromJson(fieldMapper, jsonFieldValue);
 }
 
 [R]
