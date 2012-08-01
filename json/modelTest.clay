@@ -3,7 +3,7 @@ import test.*;
 import json.*;
 
 
-jsonTestSuite() =
+modelTestSuite() =
     TestSuite(
         "json model", array(
             // JsonNumber tests
@@ -111,8 +111,8 @@ jsonTestSuite() =
         ),
     );
 
-jsonTestMain() = testMain(jsonTestSuite());
+modelTestMain() = testMain(modelTestSuite());
 
-main() = jsonTestMain();
+main() = modelTestMain();
 
 
