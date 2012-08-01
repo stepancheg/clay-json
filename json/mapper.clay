@@ -132,6 +132,7 @@ mapRecordFieldToJson(m: M, r: R, j) {
 [M, R | RecordJsonFieldMapper?(M)]
 mapRecordFieldFromJson(m: M, j, r: R) {
     alias FieldName = RecordJsonFieldMapperFieldName(M);
+    // TODO: compute statically
     var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, FieldName)));
     var jsonFieldValue = index(j, recordJsonFieldMapperJsonFieldName(m));
     fieldRef(r, FieldName) = mapFromJson(fieldMapper, jsonFieldValue);
@@ -154,6 +155,42 @@ overload mapFromJson(m: RecordJsonMapper[R], j: JsonObject) {
     }
     return r;
 }
+
+
+/// sequence mapper
+
+
+record SequenceMapper[S] (
+);
+
+[S]
+overload JsonMapper?(static SequenceMapper[S]) = true;
+[S]
+overload JsonMapperMaps(static SequenceMapper[S]) = S, JsonArray;
+
+[S | Sequence?(S)]
+overload jsonMapper(static S) = SequenceMapper[S]();
+
+[S]
+overload mapToJson(m: SequenceMapper[S], s: S) {
+    var a = JsonArray();
+    for (item in s) {
+        // TODO: compute mapper statically
+        push(a, mapToJsonQuick(item));
+    }
+    return a;
+}
+
+[S]
+overload mapFromJson(m: SequenceMapper[S], j: JsonArray) {
+    var s = S();
+    for (item in j) {
+        // TODO: compute mapper statically
+        push(s, mapFromJsonQuick(SequenceElementType(S), item));
+    }
+    return s;
+}
+
 
 /// string mapper
 
