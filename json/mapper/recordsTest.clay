@@ -3,6 +3,13 @@ import test.*;
 import json.*;
 import json.mapper.*;
 
+import json.mapper.records.(RecordFieldJsonMapper);
+import json.mapper.records.(mapRecordFieldToJson);
+import json.mapper.records.(mapRecordFieldFromJson);
+
+
+///
+
 record Album (
     title: String,
     year: UInt,
@@ -21,12 +28,16 @@ testRecordSimpleFromJson(test) {
     expectEqual(test, "record", expected, mapFromJsonQuick(Album, JsonValue(j)));
 }
 
+
+///
+
 record Result (
     successful: Bool,
     returnValue: String,
 );
 
 overload RecordJsonFieldName(static Result, static #"returnValue") = #"return";
+
 
 testRecordWithCustomStaticFieldNameToJson(test) {
     var r = Result(true, String("yep"));
@@ -41,6 +52,8 @@ testRecordWithCustomStaticFieldNameFromJson(test) {
     expectEqual(test, "record", expected, mapFromJsonQuick(Result, JsonValue(j)));
 }
 
+
+///
 
 record Building (
     height: Int,
@@ -60,6 +73,8 @@ testRecordWithCustomDynamicFieldNameFromJson(test) {
     expectEqual(test, "record", expected, mapFromJsonQuick(Building, j));
 }
 
+
+///
 
 record RecordWithTransientField (
     color: String,
@@ -81,17 +96,57 @@ testRecordWithExcludedFieldFromJson(test) {
 }
 
 
+///
+
+record RecordWithCustomFieldSerializer (
+    foo: Int,
+    bar: String,
+);
+
+
+record RecordFieldJsonMapperForBar ();
+
+overload mapRecordFieldToJson(m: RecordFieldJsonMapperForBar, r, j) {
+    put(j, "bar1", slice(r.bar, 0, 4));
+    put(j, "bar2", sliceFrom(r.bar, 4));
+}
+
+overload mapRecordFieldFromJson(m: RecordFieldJsonMapperForBar, j, r) {
+    r.bar = String(j.bar1) + String(j.bar2);
+}
+
+
+overload RecordFieldJsonMapper(static RecordWithCustomFieldSerializer, static #"bar") = RecordFieldJsonMapperForBar;
+
+
+testRecordWithCustomFieldSerializerToJson(test) {
+    var r = RecordWithCustomFieldSerializer(12, String("quantum"));
+    var j = mapToJsonQuick(r);
+    expectEqual(test, "record", JsonObject([foo: 12, bar1: "quan", bar2: "tum"]), j);
+}
+
+testRecordWithCustomFieldSerializerFromJson(test) {
+    var j = JsonObject([foo: 13, bar1: "silv", bar2: "er"]);
+    var expected = RecordWithCustomFieldSerializer(13, String("silver"));
+    expectEqual(test, "record", expected, mapFromJsonQuick(RecordWithCustomFieldSerializer, j));
+}
+
+
+///
+
 mapperRecordsTestSuite() =
     TestSuite(
         "mapper.records", array(
-            TestCase("record simple to json", testRecordSimpleToJson),
-            TestCase("record simple from json", testRecordSimpleFromJson),
-            TestCase("record with custom static field name to json", testRecordWithCustomStaticFieldNameToJson),
-            TestCase("record with custom static field name from json", testRecordWithCustomStaticFieldNameFromJson),
-            TestCase("record with custom dynamic field name to json", testRecordWithCustomDynamicFieldNameToJson),
-            TestCase("record with custom dynamic field name from json", testRecordWithCustomDynamicFieldNameFromJson),
-            TestCase("record with excluded field to json", testRecordWithExcludedFieldToJson),
-            TestCase("record with excluded field from json", testRecordWithExcludedFieldFromJson),
+            TestCase("simple to json", testRecordSimpleToJson),
+            TestCase("simple from json", testRecordSimpleFromJson),
+            TestCase("custom static field name to json", testRecordWithCustomStaticFieldNameToJson),
+            TestCase("custom static field name from json", testRecordWithCustomStaticFieldNameFromJson),
+            TestCase("custom dynamic field name to json", testRecordWithCustomDynamicFieldNameToJson),
+            TestCase("custom dynamic field name from json", testRecordWithCustomDynamicFieldNameFromJson),
+            TestCase("excluded field to json", testRecordWithExcludedFieldToJson),
+            TestCase("excluded field from json", testRecordWithExcludedFieldFromJson),
+            TestCase("custom field serializer to json", testRecordWithCustomFieldSerializerToJson),
+            TestCase("custom field serializer from json", testRecordWithCustomFieldSerializerFromJson),
         )
     );
 
