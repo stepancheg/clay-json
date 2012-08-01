@@ -30,14 +30,40 @@ overload mapFromJson(m: M, j: JsonValue) =
 
 /// record mapper
 
-alias RecordFieldMapper[R] = Lambda[[R, JsonObject], []];
-alias RecordFieldUnmapper[R] = Lambda[[JsonObject, R], []];
 
-record RecordJsonMapper[R] (
-    // TODO: avoid lambda
-    fieldMappers: Vector[RecordFieldMapper[R]],
-    fieldUnmappers: Vector[RecordFieldUnmapper[R]],
+// overload to specify custom json field name for record field
+[R, N]
+RecordJsonFieldName(static R, static N) = N;
+
+// overload to exclude some field from serialization and deserialization
+[R, N]
+IncludeRecordJsonField(static R, static N) = true;
+
+
+
+[R, N, JsonFieldName]
+record RecordJsonFieldMapper[R, N, JsonFieldName](
 );
+
+
+private define filterValues;
+
+overload filterValues(pred) = ;
+
+[Pred, First | Pred(First)]
+overload filterValues(static Pred, static First, ..xs) = First, ..filterValues(Pred, ..xs);
+
+[Pred, First | not Pred(First)]
+overload filterValues(static Pred, static First, ..xs) = ..filterValues(Pred, ..xs);
+
+
+[R]
+MakeRecordJsonMapper(static R) {
+    var f = name -> [static name, RecordJsonFieldMapper[R, name, RecordJsonFieldName(R, name)]];
+    return ..mapValues(f, ..filterValues(Name -> IncludeRecordJsonField(R, Name), ..RecordFieldNames(R)));
+}
+
+record RecordJsonMapper[R] = ..MakeRecordJsonMapper(R);
 
 overload JsonMapper?(RecordJsonMapper) = true;
 [R]
@@ -45,50 +71,27 @@ overload JsonMapperMaps(static RecordJsonMapper[R]) = R, JsonObject;
 
 
 [R | Record?(R)]
-overload jsonMapper(static R) =
-    recordJsonMapper(R);
+overload jsonMapper(static R) = RecordJsonMapper[R]();
 
-[R | Record?(R)]
-recordJsonMapper(static R) {
-    var r = RecordJsonMapper[R]();
-    ..for (f in RecordFieldNames(R)) {
-        push(r.fieldMappers, recordJsonFieldMapper(R, f));
-        push(r.fieldUnmappers, recordJsonFieldUnmapper(R, f));
-    }
-    return r;
-}
-
-[R, N]
-recordJsonFieldMapper(static R, static N) {
-    var jsonFieldName = recordJsonFieldName(R, N);
+[R, N, JsonFieldName]
+mapRecordFieldToJson(m: RecordJsonFieldMapper[R, N, JsonFieldName], r: R, j) {
     var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, N)));
-    return RecordFieldMapper[R](
-        (r: R, j: JsonObject) => {
-            var v = JsonValue(mapToJson(fieldMapper, fieldRef(r, N)));
-            put(j, jsonFieldName, v);
-        });
+    var v = JsonValue(mapToJson(fieldMapper, fieldRef(r, N)));
+    put(j, JsonFieldName, v);
 }
 
-[R, N]
-recordJsonFieldUnmapper(static R, static N) {
-    var jsonFieldName = recordJsonFieldName(R, N);
+[R, N, JsonFieldName]
+mapRecordFieldFromJson(m: RecordJsonFieldMapper[R, N, JsonFieldName], j, r: R) {
     var fieldMapper = jsonMapper(Type(fieldRef(null(R)^, N)));
-    return RecordFieldUnmapper[R](
-        (j: JsonObject, r: R) => {
-            var jsonFieldValue = index(j, jsonFieldName);
-            fieldRef(r, N) = mapFromJson(fieldMapper, jsonFieldValue);
-        });
+    var jsonFieldValue = index(j, JsonFieldName);
+    fieldRef(r, N) = mapFromJson(fieldMapper, jsonFieldValue);
 }
-
-[R, N]
-recordJsonFieldName(static R, static N) = N;
-
 
 [R]
 overload mapToJson(m: RecordJsonMapper[R], r: R) {
     var j = JsonObject();
-    for (fieldMapper in m.fieldMappers) {
-        fieldMapper(r, j);
+    ..for (fieldMapper in ..recordFields(m)) {
+        mapRecordFieldToJson(fieldMapper, r, j);
     }
     return j;
 }
@@ -96,8 +99,8 @@ overload mapToJson(m: RecordJsonMapper[R], r: R) {
 [R]
 overload mapFromJson(m: RecordJsonMapper[R], j: JsonObject) {
     var r = R();
-    for (fieldUnmapper in m.fieldUnmappers) {
-        fieldUnmapper(j, r);
+    ..for (fieldMapper in ..recordFields(m)) {
+        mapRecordFieldFromJson(fieldMapper, j, r);
     }
     return r;
 }

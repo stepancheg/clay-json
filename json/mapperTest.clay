@@ -26,7 +26,7 @@ record Result (
     returnValue: String,
 );
 
-overload recordJsonFieldName(static Result, static #"returnValue") = "return";
+overload RecordJsonFieldName(static Result, static #"returnValue") = #"return";
 
 testRecordWithCustomFieldNameToJson(test) {
     var r = Result(true, String("yep"));
@@ -39,6 +39,26 @@ testRecordWithCustomFieldNameFromJson(test) {
     var expected = Result(false, String("no"));
     expectEqual(test, "record", expected, mapFromJsonQuick(Result, j));
     expectEqual(test, "record", expected, mapFromJsonQuick(Result, JsonValue(j)));
+}
+
+
+record RecordWithTransientField (
+    color: String,
+    colorNumberCache: Int,
+);
+
+overload IncludeRecordJsonField(static RecordWithTransientField, static #"colorNumberCache") = false;
+
+testRecordWithExcludedFieldToJson(test) {
+    var r = RecordWithTransientField(String("red"), 0xff0000);
+    var j = mapToJsonQuick(r);
+    expectEqual(test, "record", JsonObject([color: "red"]), j);
+}
+
+testRecordWithExcludedFieldFromJson(test) {
+    var j = JsonObject([color: "blue"]);
+    var expected = RecordWithTransientField(String("blue"), 0);
+    expectEqual(test, "record", expected, mapFromJsonQuick(RecordWithTransientField, j));
 }
 
 
@@ -80,6 +100,8 @@ mapperTestSuite() =
             TestCase("record simple from json", testRecordSimpleFromJson),
             TestCase("record with custom field name to json", testRecordWithCustomFieldNameToJson),
             TestCase("record with custom field name from json", testRecordWithCustomFieldNameFromJson),
+            TestCase("record with excluded field to json", testRecordWithExcludedFieldToJson),
+            TestCase("record with excluded field from json", testRecordWithExcludedFieldFromJson),
         )
     );
 
