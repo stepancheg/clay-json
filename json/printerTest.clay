@@ -1,18 +1,20 @@
+import printer.*;
+
 import test.*;
 
 import json.*;
 import json.printer.*;
 
-[V | VariantMember?(JsonValue, V)]
+[V when VariantMember?(JsonValue, V)]
 private expectPrinted(test, name, expected, value: V) {
     expectEqual(test, name, expected, str(value));
-    expectEqual(test, name + " wrapped", expected, str(JsonValue(value)));
+    expectEqual(test, name ++ " wrapped", expected, str(JsonValue(value)));
 }
 
-[V | VariantMember?(JsonValue, V)]
+[V when VariantMember?(JsonValue, V)]
 private expectPrintedPretty(test, name, expected, value: V) {
     expectEqual(test, name, expected, strPretty(value));
-    expectEqual(test, name + " wrapped", expected, strPretty(JsonValue(value)));
+    expectEqual(test, name ++ " wrapped", expected, strPretty(JsonValue(value)));
 }
 
 printerTestSuite() =

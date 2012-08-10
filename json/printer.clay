@@ -1,3 +1,6 @@
+import printer.*;
+import strings.*;
+
 import json.*;
 
 import json.escape.*;
@@ -12,7 +15,7 @@ overload PrintPretty() = PrintPretty(0u);
 
 variant PrintStyle (PrintCompact, PrintOneLine, PrintPretty);
 
-[J | JsonAnything?(J)]
+[J when JsonAnything?(J)]
 define printJsonTo(stream, j: J, style): ;
 
 overload printJsonTo(stream, value: JsonNull, style) {
@@ -55,9 +58,9 @@ private printNewlineAndIndentTo(stream, style) {
 
 private comma(style) =
     match(PrintStyle(style),
-        (p: PrintPretty) => ",",
-        (p: PrintCompact) => ",",
-        (p: PrintOneLine) => ", ",
+        (p: PrintPretty) => CStringRef(cstring(",")),
+        (p: PrintCompact) => CStringRef(cstring(",")),
+        (p: PrintOneLine) => CStringRef(cstring(", ")),
     );
 
 private printStyleNext(style) =
@@ -131,7 +134,7 @@ strOneLine(value) = strWithStyle(value, PrintOneLine());
 strPretty(value) = strWithStyle(value, PrintPretty());
 
 
-[J | JsonAnything?(J)]
+[J when JsonAnything?(J)]
 overload printTo(stream, value: J) =
     ..printOneLineTo(stream, value);
 

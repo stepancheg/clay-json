@@ -1,9 +1,11 @@
+import printer.*;
+
 import json.model.*;
 import json.mapper.*;
 
 
 [T]
-private ElementMappers(static T) =
+private ElementMappers(#T) =
     Tuple[..mapValues(JsonMapper, ..TupleElements(T))];
 
 record TupleMapper[T] (
@@ -11,15 +13,15 @@ record TupleMapper[T] (
 );
 
 [T]
-overload JsonMapperMaps(static TupleMapper[T]) = T, JsonArray;
+overload JsonMapperMaps(#TupleMapper[T]) = T, JsonArray;
 
-[T | Tuple?(T)]
-overload JsonMapper(static T) = TupleMapper[T];
+[T when Tuple?(T)]
+overload JsonMapper(#T) = TupleMapper[T];
 
 [T]
 overload mapToJson(m: TupleMapper[T], t: T) {
     var a = JsonArray();
-    ..for (i in staticIntegers(static TupleElementCount(T))) {
+    ..for (i in staticIntegers(#TupleElementCount(T))) {
         alias elementMapper = staticIndex(m.elementMappers, i);
         push(a, mapToJson(elementMapper, staticIndex(t, i)));
     }
@@ -32,7 +34,7 @@ overload mapFromJson(m: TupleMapper[T], j: JsonArray) {
     if (size(j) != TupleElementCount(T)) {
         error("does not compute");
     }
-    ..for (i in staticIntegers(static TupleElementCount(T))) {
+    ..for (i in staticIntegers(#TupleElementCount(T))) {
         alias elementMapper = staticIndex(m.elementMappers, i);
         staticIndex(t, i) = mapFromJson(elementMapper, j[unwrapStatic(i)]);
     }

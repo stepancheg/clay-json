@@ -7,10 +7,10 @@ record SequenceMapper[S] (
 );
 
 [S]
-overload JsonMapperMaps(static SequenceMapper[S]) = S, JsonArray;
+overload JsonMapperMaps(#SequenceMapper[S]) = S, JsonArray;
 
-[S | Sequence?(S)]
-overload JsonMapper(static S) = SequenceMapper[S];
+[S when Sequence?(S)]
+overload JsonMapper(#S) = SequenceMapper[S];
 
 [S]
 overload mapToJson(m: SequenceMapper[S], s: S) {

@@ -3,9 +3,9 @@ import json.mapper.*;
 
 record BoolMapper();
 
-overload JsonMapperMaps(static BoolMapper) = Bool, JsonBoolean;
+overload JsonMapperMaps(#BoolMapper) = Bool, JsonBoolean;
 
-overload JsonMapper(static Bool) = BoolMapper;
+overload JsonMapper(#Bool) = BoolMapper;
 
 overload mapToJson(m: BoolMapper, b: Bool) = JsonBoolean(b);
 

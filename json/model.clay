@@ -1,3 +1,7 @@
+import strings.*;
+import vectors.*;
+import printer.*;
+
 import json.support.decimal.*;
 
 /// model
@@ -31,9 +35,9 @@ record JsonBoolean (
 variant JsonValue (JsonArray, JsonObject, JsonNull, JsonNumber, JsonString, JsonBoolean);
 
 [J]
-JsonVariantMember?(static J) = VariantMember?(JsonValue, J);
+JsonVariantMember?(#J) = VariantMember?(JsonValue, J);
 [J]
-JsonAnything?(static J) = J == JsonValue or JsonVariantMember?(J);
+JsonAnything?(#J) = J == JsonValue or JsonVariantMember?(J);
 
 isArray(value) = variantIs?(value, JsonArray);
 isObject(value) = variantIs?(value, JsonObject);
@@ -52,21 +56,21 @@ getBoolean(forward value) = forward variantAs(value, JsonBoolean);
 overload Bool(value: JsonValue) = getBoolean(value).value;
 overload Decimal(value: JsonValue) = getNumber(value).value;
 
-[I | Numeric?(I)]
+[I when Numeric?(I)]
 overload I(value: JsonValue) = I(Decimal(value));
 
 overload String(value: JsonValue) = getString(value).value;
 
-[N | N != Decimal and N != JsonNumber]
+[N when N != Decimal and N != JsonNumber]
 overload JsonNumber(n: N) = JsonNumber(Decimal(n));
 
-[N | Numeric?(N)]
+[N when Numeric?(N)]
 overload N(j: JsonNumber) = N(j.value);
 
-[N | Numeric?(N)]
+[N when Numeric?(N)]
 overload N(j: JsonValue) = N(getNumber(j));
 
-[S | S != String and S != JsonString]
+[S when S != String and S != JsonString]
 overload JsonString(s: S) = JsonString(String(s));
 
 [..T]
@@ -76,7 +80,7 @@ overload JsonArray(v: Tuple[..T]) {
     return r;
 }
 
-[S | Sequence?(S) and S != JsonArray]
+[S when Sequence?(S) and S != JsonArray]
 overload JsonArray(s: S) {
     var r = JsonArray();
     for (item in s) {
@@ -86,15 +90,15 @@ overload JsonArray(s: S) {
 }
 
 private define stringForKey(s): String;
-[S | String?(S)]
+[S when String?(S)]
 overload stringForKey(s: S) = String(s);
 [S]
-overload stringForKey(static S) = stringForKey(StaticName(S));
+overload stringForKey(#S) = stringForKey(CStringRef(cstring(StaticName(S))));
 
 [T]
-private KeyValueTuple?(static T) = Tuple?(T) and TupleElementCount(T) == 2 and CallDefined?(stringForKey, nthValue(static 0, ..TupleElements(T)));
+private KeyValueTuple?(#T) = Tuple?(T) and TupleElementCount(T) == 2 and CallDefined?(stringForKey, nthValue(#0, ..TupleElements(T)));
 
-[..T | allValues?(KeyValueTuple?, ..T)]
+[..T when allValues?(KeyValueTuple?, ..T)]
 overload JsonObject(kvs: Tuple[..T]) {
     var r = JsonObject();
     ..for (kv in ..unpackTuple(kvs)) {
@@ -104,21 +108,21 @@ overload JsonObject(kvs: Tuple[..T]) {
 }
 
 
-[S | String?(S)]
+[S when String?(S)]
 overload JsonValue(s: S) = JsonValue(JsonString(s));
-[N | Numeric?(N)]
+[N when Numeric?(N)]
 overload JsonValue(n: N) = JsonValue(JsonNumber(n));
 []
 overload JsonValue(b: Bool) = JsonValue(JsonBoolean(b));
 []
 overload JsonValue() = JsonValue(JsonNull());
 
-[A | CallDefined?(JsonValue, A) and A != JsonValue]
+[A when CallDefined?(JsonValue, A) and A != JsonValue]
 overload assign(ref v: JsonValue, forward a: A) {
     v = JsonValue(a);
 }
 
-[..V | countValues(..V) > 0]
+[..V when countValues(..V) > 0]
 overload push(array: JsonArray, ..value: V) =
     ..push(array.data, ..mapValues(JsonValue, ..value));
 
@@ -138,32 +142,32 @@ overload index(object: JsonObject, k) {
             return ref t.1;
     }
     error("no key ", k);
-    throw Error();
+    throw Error(CStringRef());
 }
 
-[I | Integer?(I)]
+[I when Integer?(I)]
 overload index(array: JsonValue, i: I) =
     forward index(getArray(array), i);
 
-[K | String?(K)]
+[K when String?(K)]
 overload index(object: JsonValue, k: K) =
     forward index(getObject(object), k);
 
 [K]
-overload fieldRef(object: JsonObject, static K) =
+overload fieldRef(object: JsonObject, #K) =
     forward index(object, StaticName(K));
 
-overload fieldRef(object: JsonObject, static #"data") =
+overload fieldRef(object: JsonObject, #"data") =
     ref recordFieldRefByName(object, #"data");
 
 [K]
-overload fieldRef(value: JsonValue, static K) =
-    fieldRef(getObject(value), static K);
+overload fieldRef(value: JsonValue, #K) =
+    fieldRef(getObject(value), #K);
 
-[J | JsonVariantMember?(J)]
+[J when JsonVariantMember?(J)]
 overload size(j: J): SizeT {
     error(J, " has no size");
-    throw Error();
+    throw Error(CStringRef());
 }
 overload size(array: JsonArray) = size(array.data);
 overload size(object: JsonObject) = size(object.data);

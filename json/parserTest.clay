@@ -1,3 +1,6 @@
+import strings.*;
+import printer.*;
+
 import test.*;
 
 import json.*;

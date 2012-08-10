@@ -1,7 +1,8 @@
-import maybe.*;
 import parsing.combinators.strings.*;
 import parsing.combinators.wrapper.*;
 import vectors.*;
+import strings.*;
+import printer.*;
 
 import json.*;
 import json.escape.*;
@@ -30,7 +31,7 @@ private record JsonToken (
     data: JsonTokenData,
 );
 
-private keywordTokenParser(tokenType, keyword) = modify(t => JsonToken(tokenType, JsonTokenData(Nothing)), literalString(keyword));
+private keywordTokenParser(tokenType, keyword) = modify(t => JsonToken(tokenType, JsonTokenData(Nothing)), literalString(str(keyword)));
 
 private var digit19Parser = condition(c => ((c >= '1') and (c <= '9')));
 private var digitParser = condition(c => ((c >= '0') and (c <= '9')));
@@ -172,14 +173,15 @@ private var tokenParser = choice(
     stringTokenParser,
 );
 
-var spaceParser = zeroOrMore(condition(space?));
+var spaceParser = zeroOrMore(condition(asciiSpace?));
 
 var tokensParser = modify(x -> x.1, [spaceParser, separatedList(spaceParser, tokenParser), spaceParser]);
 
 private tokenize(input): Vector[JsonToken] {
     var iterator = iterator(input);
     var result = require(tokensParser(iterator));
-    if (hasNext?(iterator)) {
+    var next = nextValue(iterator);
+    if (hasValue?(next)) {
         error("not exhausted");
     }
     return result;
@@ -231,7 +233,7 @@ private var arrayParser =
     );
 
 [V]
-private variantParser(static V, ..parsers) {
+private variantParser(#V, ..parsers) {
     return jsonCombinators.choice(..mapValues(p => jsonCombinators.modify(V, p), ..parsers));
 }
 

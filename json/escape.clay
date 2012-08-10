@@ -1,4 +1,6 @@
+import strings.*;
 import vectors.generic.*;
+import printer.*;
 
 
 
@@ -29,7 +31,7 @@ private quoteJsonCharTo(stream, c) {
         printTo(stream, c);
     } else if (c < CharType(0x20)) {
         printTo(stream, "\\u");
-        ..for (n in ..staticIntegers(static 4)) {
+        ..for (n in ..staticIntegers(#4)) {
             printTo(stream, hexDigit(bitand(bitshr(unsigned(c), (3 - unwrapStatic(n)) * 4), 0xf)));
         }
     } else {

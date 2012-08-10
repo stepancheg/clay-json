@@ -5,10 +5,10 @@ import json.mapper.*;
 record JsonVariantMemberMapper[J] ();
 
 [J]
-overload JsonMapperMaps(static JsonVariantMemberMapper[J]) = J, J;
+overload JsonMapperMaps(#JsonVariantMemberMapper[J]) = J, J;
 
-[J | JsonVariantMember?(J)]
-overload JsonMapper(static J) = JsonVariantMemberMapper[J];
+[J when JsonVariantMember?(J)]
+overload JsonMapper(#J) = JsonVariantMemberMapper[J];
 
 [J]
 overload mapToJson(m: JsonVariantMemberMapper[J], j: J) = j;
@@ -19,9 +19,9 @@ overload mapFromJson(m: JsonVariantMemberMapper[J], j: J) = j;
 
 record JsonValueMapper ();
 
-overload JsonMapperMaps(static JsonValueMapper) = JsonValue, JsonValue;
+overload JsonMapperMaps(#JsonValueMapper) = JsonValue, JsonValue;
 
-overload JsonMapper(static JsonValue) = JsonValueMapper;
+overload JsonMapper(#JsonValue) = JsonValueMapper;
 
 overload mapToJson(m: JsonValueMapper, j: JsonValue) = j;
 

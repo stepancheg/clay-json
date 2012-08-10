@@ -1,5 +1,6 @@
+import strings.*;
+
 import json.support.records.*;
-import json.support.values.*;
 
 import json.model.*;
 import json.mapper.*;
@@ -9,39 +10,39 @@ import json.mapper.*;
 // overload to specify custom json field name for record field
 // executed at compile time, must return static
 [R, N]
-RecordJsonFieldName(static R, static N) = N;
+RecordJsonFieldName(#R, #N) = N;
 
 // overload to specify custon json field name for record field
 // execute at mapper construction time, so mapToJsonQuick may be slow
 // necessary when field name cannot be computed at compile time
 [R, N]
-define recordJsonFieldName(static R, static N);
+define recordJsonFieldName(#R, #N);
 
 // overload to exclude some field from serialization and deserialization
 [R, N]
-IncludeRecordJsonField(static R, static N) = true;
+IncludeRecordJsonField(#R, #N) = true;
 
 
 
 // field json name holder
 
 JsonNameHolder?(T) = false;
-[R | JsonNameHolder?(R)]
+[R when JsonNameHolder?(R)]
 define jsonNameHolderGet(r: R);
 
 [R, FieldName]
-define JsonNameHolder(static R, static FieldName);
+define JsonNameHolder(#R, #FieldName);
 
 
-// static name holder
+// #name holder
 
 record JsonNameHolderStatic[JsonFieldName] ();
 
 [JsonFieldName]
-overload JsonNameHolder?(static JsonNameHolderStatic[JsonFieldName]) = true;
+overload JsonNameHolder?(#JsonNameHolderStatic[JsonFieldName]) = true;
 
 [R, FieldName]
-overload JsonNameHolder(static R, static FieldName) =
+overload JsonNameHolder(#R, #FieldName) =
     JsonNameHolderStatic[RecordJsonFieldName(R, FieldName)];
 
 [JsonFieldName]
@@ -59,10 +60,10 @@ overload JsonNameHolderDynamic[R, FieldName]() =
     JsonNameHolderDynamic[R, FieldName](recordJsonFieldName(R, FieldName));
 
 [R, FieldName]
-overload JsonNameHolder?(static JsonNameHolderDynamic[R, FieldName]) = true;
+overload JsonNameHolder?(#JsonNameHolderDynamic[R, FieldName]) = true;
 
-[R, FieldName | CallDefined?(recordJsonFieldName, Static[R], Static[FieldName])]
-overload JsonNameHolder(static R, static FieldName) =
+[R, FieldName when CallDefined?(recordJsonFieldName, Static[R], Static[FieldName])]
+overload JsonNameHolder(#R, #FieldName) =
     JsonNameHolderDynamic[R, FieldName];
 
 [R, FieldName]
@@ -73,16 +74,16 @@ overload jsonNameHolderGet(r: JsonNameHolderDynamic[R, FieldName]) = r.jsonField
 
 [R, FieldName]
 record RecordFieldJsonMapperDefault[R, FieldName] (
-    jsonNameHolder: JsonNameHolder(static R, static FieldName),
+    jsonNameHolder: JsonNameHolder(#R, #FieldName),
     valueMapper: JsonMapper(RecordFieldTypeByName(R, FieldName)),
 );
 
 [R, FieldName]
-RecordFieldJsonMapperFieldName(static RecordFieldJsonMapperDefault[R, FieldName]) = FieldName;
+RecordFieldJsonMapperFieldName(#RecordFieldJsonMapperDefault[R, FieldName]) = FieldName;
 
 
 [R, FieldName]
-RecordFieldJsonMapper(static R, static FieldName) = RecordFieldJsonMapperDefault[R, FieldName];
+RecordFieldJsonMapper(#R, #FieldName) = RecordFieldJsonMapperDefault[R, FieldName];
 
 
 [R, FieldName]
@@ -104,19 +105,19 @@ mapRecordFieldFromJson(m: RecordFieldJsonMapperDefault[R, FieldName], j, r: R) {
 
 
 [R]
-MakeRecordJsonMapper(static R) {
-    var f = name -> [static name, RecordFieldJsonMapper(R, name)];
+MakeRecordJsonMapper(#R) {
+    var f = name -> [#name, RecordFieldJsonMapper(R, name)];
     return ..mapValues(f, ..filterValues(Name -> IncludeRecordJsonField(R, Name), ..RecordFieldNames(R)));
 }
 
 record RecordJsonMapper[R] = ..MakeRecordJsonMapper(R);
 
 [R]
-overload JsonMapperMaps(static RecordJsonMapper[R]) = R, JsonObject;
+overload JsonMapperMaps(#RecordJsonMapper[R]) = R, JsonObject;
 
 
-[R | Record?(R)]
-overload JsonMapper(static R) = RecordJsonMapper[R];
+[R when Record?(R)]
+overload JsonMapper(#R) = RecordJsonMapper[R];
 
 [R]
 overload mapToJson(m: RecordJsonMapper[R], r: R) {

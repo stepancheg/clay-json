@@ -1,14 +1,14 @@
 import json.model.*;
 import json.mapper.*;
 
-[N | Numeric?(N)]
+[N when Numeric?(N)]
 record NumericJsonMapper[N]();
 
 [N]
-overload JsonMapperMaps(static NumericJsonMapper[N]) = N, JsonNumber;
+overload JsonMapperMaps(#NumericJsonMapper[N]) = N, JsonNumber;
 
-[N | Numeric?(N)]
-overload JsonMapper(static N) = NumericJsonMapper[N];
+[N when Numeric?(N)]
+overload JsonMapper(#N) = NumericJsonMapper[N];
 
 [N]
 overload mapToJson(m: NumericJsonMapper[N], n: N) = JsonNumber(n);

@@ -22,30 +22,30 @@ import json.mapper.tuple.*;
 
 
 [T]
-define JsonMapper(static T);
+define JsonMapper(#T);
 
 [T]
-jsonMapper(static T) = JsonMapper(T)();
+jsonMapper(#T) = JsonMapper(T)();
 
 [M]
-define JsonMapperMaps(static M);
+define JsonMapperMaps(#M);
 
 [M]
-JsonMapper?(static M) = CallDefined?(JsonMapperMaps, Static[M]);
+JsonMapper?(#M) = CallDefined?(JsonMapperMaps, Static[M]);
 
 [M]
-JsonMapperMapsFrom(static M) = nthValue(static 0, ..JsonMapperMaps(M));
+JsonMapperMapsFrom(#M) = nthValue(#0, ..JsonMapperMaps(M));
 [M]
-JsonMapperMapsTo(static M) = nthValue(static 1, ..JsonMapperMaps(M));
+JsonMapperMapsTo(#M) = nthValue(#1, ..JsonMapperMaps(M));
 
-[M, T | JsonMapper?(M) and JsonMapperMapsFrom(M) == T]
+[M, T when JsonMapper?(M) and JsonMapperMapsFrom(M) == T]
 define mapToJson(m: M, t: T);
 
-[M, J | JsonMapper?(M) and JsonAnything?(J)]
+[M, J when JsonMapper?(M) and JsonAnything?(J)]
 define mapFromJson(m: M, j: J);
 
 
-[M | JsonMapper?(M) and JsonMapperMapsTo(M) != JsonValue]
+[M when JsonMapper?(M) and JsonMapperMapsTo(M) != JsonValue]
 overload mapFromJson(m: M, j: JsonValue) =
     mapFromJson(m, variantAs(j, JsonMapperMapsTo(M)));
 
@@ -56,8 +56,8 @@ overload mapFromJson(m: M, j: JsonValue) =
 /// these functions can be expension if mapper construction is expensive
 
 [T]
-mapToJsonQuick(t: T) = mapToJson(jsonMapper(static T), t);
+mapToJsonQuick(t: T) = mapToJson(jsonMapper(#T), t);
 
-[T, J | JsonAnything?(J)]
-mapFromJsonQuick(static T, j: J) = mapFromJson(jsonMapper(T), j);
+[T, J when JsonAnything?(J)]
+mapFromJsonQuick(#T, j: J) = mapFromJson(jsonMapper(T), j);
 

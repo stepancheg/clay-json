@@ -1,3 +1,6 @@
+import vectors.*;
+import sequences.*;
+
 import test.*;
 
 import json.*;

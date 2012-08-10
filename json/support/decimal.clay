@@ -1,3 +1,4 @@
+import numbers.parser.*;
 import printer.*;
 
 record Decimal (
@@ -11,10 +12,10 @@ record Decimal (
 private alias Unscaled = Type(null(Decimal)^.unscaled);
 private alias Scale = Type(null(Decimal)^.scale);
 
-[U, S | Integer?(U, S) and (U != Unscaled or S != Scale)]
+[U, S when Integer?(U, S) and (U != Unscaled or S != Scale)]
 overload Decimal(unscaled: U, scale: S): Decimal = Decimal(Unscaled(unscaled), Scale(scale));
 
-[U | Integer?(U)]
+[U when Integer?(U)]
 overload Decimal(value: U) = Decimal(value, 0);
 
 overload printTo(stream, d: Decimal) {
@@ -23,20 +24,20 @@ overload printTo(stream, d: Decimal) {
     printTo(stream, d.scale);
 }
 
-[N, I | /*Numeric?(N) and*/ Integer?(I)]
+[N, I when /*Numeric?(N) and*/ Integer?(I)]
 define exp10(n: N, exp: I): N;
 
-[I | Integer?(I)]
+[I when Integer?(I)]
 overload exp10(base: I, exp) {
     var r = base;
     var expCopy = exp;
     while (expCopy > 0) {
-        r *= 10;
-        expCopy -= 1;
+        r *: 10;
+        expCopy -: 1;
     }
     while (expCopy < 0) {
-        r /= 10;
-        expCopy += 1;
+        r \: 10;
+        expCopy +: 1;
     }
     return r;
 }
@@ -55,21 +56,21 @@ overload add(d1: Decimal, d2: Decimal) {
     return Decimal(changeScale(d1, scale).unscaled + changeScale(d2, scale).unscaled, scale);
 }
 
-overload minus(d: Decimal) =
+overload (-)(d: Decimal) =
     Decimal(-d.unscaled, d.scale);
 
 [I]
-private convertToInteger(static I, d: Decimal) =
+private convertToInteger(#I, d: Decimal) =
     I(exp10(d.unscaled, d.scale));
 
 [F]
-private convertToFloat(static F, d: Decimal) =
+private convertToFloat(#F, d: Decimal) =
     // TODO: lame
     F(str(d));
 
-[N | Integer?(N)]
+[N when Integer?(N)]
 overload N(d: Decimal) = convertToInteger(N, d);
-[N | Float?(N)]
+[N when Float?(N)]
 overload N(d: Decimal) = convertToFloat(N, d);
 
 changeScale(d: Decimal, scale) =

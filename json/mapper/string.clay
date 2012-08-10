@@ -1,3 +1,5 @@
+import strings.*;
+
 import json.model.*;
 import json.mapper.*;
 
@@ -5,15 +7,15 @@ import json.mapper.*;
 record StringJsonMapper[S] ();
 
 [S]
-overload JsonMapperMaps(static StringJsonMapper[S]) = S, JsonString;
+overload JsonMapperMaps(#StringJsonMapper[S]) = S, JsonString;
 
-[S | String?(S)]
-overload JsonMapper(static S) = StringJsonMapper[S];
+[S when String?(S)]
+overload JsonMapper(#S) = StringJsonMapper[S];
 
-[S | String?(S)]
+[S when String?(S)]
 overload mapToJson(m: StringJsonMapper[S], s: S) = JsonString(s);
 
-[S | String?(S)]
+[S when String?(S)]
 overload mapFromJson(m: StringJsonMapper[S], j: JsonString) = S(j.value);
 
 

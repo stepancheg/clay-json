@@ -1,3 +1,7 @@
+import strings.*;
+import printer.*;
+import sequences.*;
+
 import test.*;
 
 import json.*;
@@ -36,7 +40,7 @@ record Result (
     returnValue: String,
 );
 
-overload RecordJsonFieldName(static Result, static #"returnValue") = #"return";
+overload RecordJsonFieldName(#Result, ##"returnValue") = #"return";
 
 
 testRecordWithCustomStaticFieldNameToJson(test) {
@@ -59,7 +63,7 @@ record Building (
     height: Int,
 );
 
-overload recordJsonFieldName(static Building, static #"height") = str("height", size("height"));
+overload recordJsonFieldName(#Building, #"height") = str("height", size("height"));
 
 testRecordWithCustomDynamicFieldNameToJson(test) {
     var r = Building(100);
@@ -81,7 +85,7 @@ record RecordWithTransientField (
     colorNumberCache: Int,
 );
 
-overload IncludeRecordJsonField(static RecordWithTransientField, static #"colorNumberCache") = false;
+overload IncludeRecordJsonField(#RecordWithTransientField, #"colorNumberCache") = false;
 
 testRecordWithExcludedFieldToJson(test) {
     var r = RecordWithTransientField(String("red"), 0xff0000);
@@ -112,11 +116,11 @@ overload mapRecordFieldToJson(m: RecordFieldJsonMapperForBar, r, j) {
 }
 
 overload mapRecordFieldFromJson(m: RecordFieldJsonMapperForBar, j, r) {
-    r.bar = String(j.bar1) + String(j.bar2);
+    r.bar = String(j.bar1) ++ String(j.bar2);
 }
 
 
-overload RecordFieldJsonMapper(static RecordWithCustomFieldSerializer, static #"bar") = RecordFieldJsonMapperForBar;
+overload RecordFieldJsonMapper(#RecordWithCustomFieldSerializer, #"bar") = RecordFieldJsonMapperForBar;
 
 
 testRecordWithCustomFieldSerializerToJson(test) {
