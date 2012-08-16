@@ -8,6 +8,7 @@ import json.*;
 import json.escape.*;
 import json.support.decimal.*;
 
+
 // tokenizer
 
 private enum JsonTokenType (
@@ -83,7 +84,7 @@ var signedIntegerParser =
         unsignedIntegerParser,
     ]);
 
-private var numberTokenParser =
+private var decimalParser =
     modify(
         t => {
             var minus? = just?(t.0);
@@ -95,7 +96,7 @@ private var numberTokenParser =
             if (minus?)
                 r = -r;
             
-            return JsonToken(NUMBER_TYPE, JsonTokenData(r));
+            return r;
         },
         [
             optional('-'),
@@ -169,9 +170,18 @@ private var tokenParser = choice(
     keywordTokenParser(TRUE_TYPE, "true"),
     keywordTokenParser(FALSE_TYPE, "false"),
     keywordTokenParser(NULL_TYPE, "null"),
-    numberTokenParser,
+    modify(d -> JsonToken(NUMBER_TYPE, JsonTokenData(d)), decimalParser),
     stringTokenParser,
 );
+
+parseDecimal(input): Decimal {
+    var it = iterator(input);
+    var r = require(decimalParser(it));
+    if (hasValue?(nextValue(it))) {
+        throw Error(CStringRef());
+    }
+    return r;
+}
 
 var spaceParser = zeroOrMore(condition(asciiSpace?));
 

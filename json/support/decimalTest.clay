@@ -11,6 +11,15 @@ decimalTestSuite() =
                 var d = Decimal(2, 4);
                 expectEqual(test, "str", "3e5", str(Decimal(3, 5)));
             }),
+            TestCase("parse", test => {
+                expectEqual(test, "3e5", Decimal(3, 5), Decimal("3e5"));
+                try {
+                    Decimal("3e5x");
+                    expectTrue(test, "expecting exception", false);
+                } catch (e) {
+                    // ok
+                }
+            }),
             TestCase("==", test => {
                 expectEqual(test, "decimal", Decimal(1000, 0), Decimal(1, 3));
                 expectEqual(test, "decimal", Decimal(1000, -10), Decimal(1, -7));

@@ -1,5 +1,8 @@
 import numbers.parser.*;
 import printer.*;
+import strings.(String?);
+
+import json.parser.(parseDecimal);
 
 record Decimal (
     unscaled: Int64,
@@ -17,6 +20,9 @@ overload Decimal(unscaled: U, scale: S): Decimal = Decimal(Unscaled(unscaled), S
 
 [U when Integer?(U)]
 overload Decimal(value: U) = Decimal(value, 0);
+
+[S when String?(S)]
+overload Decimal(s: S) = parseDecimal(s);
 
 overload printTo(stream, d: Decimal) {
     printTo(stream, d.unscaled);
