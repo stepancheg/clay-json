@@ -34,6 +34,9 @@ record JsonBoolean (
 
 variant JsonValue (JsonArray, JsonObject, JsonNull, JsonNumber, JsonString, JsonBoolean);
 
+// https://github.com/jckarter/clay/issues/332#issuecomment-7827948
+overload CompareOpDefined?((==), #JsonValue, #JsonValue) = true;
+
 [J]
 JsonVariantMember?(#J) = VariantMember?(JsonValue, J);
 [J]
