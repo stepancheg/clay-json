@@ -11,6 +11,7 @@ import json.mapper.records.*;
 public import json.mapper.records.(RecordJsonFieldName);
 public import json.mapper.records.(recordJsonFieldName);
 public import json.mapper.records.(IncludeRecordJsonField);
+public import json.mapper.records.(RecordFieldIntermediate);
 
 import json.mapper.sequence.*;
 

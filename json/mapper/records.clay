@@ -4,6 +4,7 @@ import json.support.records.*;
 
 import json.model.*;
 import json.mapper.*;
+import json.mapper.convert.*;
 
 
 
@@ -21,6 +22,14 @@ define recordJsonFieldName(#R, #N);
 // overload to exclude some field from serialization and deserialization
 [R, N]
 IncludeRecordJsonField(#R, #N) = true;
+
+// overload to perform intermediate conversion
+[R, N]
+RecordFieldIntermediate(#R, #N) = RecordFieldTypeByName(#R, #N);
+
+// overload to perform intermediate conversion
+[R, N]
+RecordFieldToIntermediateConverter(#R, #N) = Converter(RecordFieldTypeByName(#R, #N), RecordFieldIntermediate(#R, #N));
 
 
 
@@ -75,7 +84,8 @@ overload jsonNameHolderGet(r: JsonNameHolderDynamic[R, FieldName]) = r.jsonField
 [R, FieldName]
 record RecordFieldJsonMapperDefault[R, FieldName] (
     jsonNameHolder: JsonNameHolder(#R, #FieldName),
-    valueMapper: JsonMapper(RecordFieldTypeByName(R, FieldName)),
+    intermediateConverter: RecordFieldToIntermediateConverter(#R, #FieldName),
+    valueMapper: JsonMapper(ConverterRight(RecordFieldToIntermediateConverter(#R, #FieldName))),
 );
 
 [R, FieldName]
@@ -90,7 +100,8 @@ RecordFieldJsonMapper(#R, #FieldName) = RecordFieldJsonMapperDefault[R, FieldNam
 mapRecordFieldToJson(m: RecordFieldJsonMapperDefault[R, FieldName], r: R, j) {
     alias FieldName = RecordFieldJsonMapperFieldName(Type(m));
     var jsonName = jsonNameHolderGet(m.jsonNameHolder);
-    var v = JsonValue(mapToJson(m.valueMapper, fieldRef(r, FieldName)));
+    var intermediate = convertLeftToRight(m.intermediateConverter, fieldRef(r, FieldName));
+    var v = JsonValue(mapToJson(m.valueMapper, intermediate));
     put(j, jsonName, v);
 }
 
@@ -99,7 +110,8 @@ mapRecordFieldFromJson(m: RecordFieldJsonMapperDefault[R, FieldName], j, r: R) {
     alias FieldName = RecordFieldJsonMapperFieldName(Type(m));
     var jsonName = jsonNameHolderGet(m.jsonNameHolder);
     var jsonFieldValue = index(j, jsonName);
-    fieldRef(r, FieldName) = mapFromJson(m.valueMapper, jsonFieldValue);
+    var intermediate = mapFromJson(m.valueMapper, jsonFieldValue);
+    fieldRef(r, FieldName) = convertRightToLeft(m.intermediateConverter, intermediate);
 }
 
 

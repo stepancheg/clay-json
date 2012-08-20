@@ -8,6 +8,7 @@ import json.*;
 import json.mapper.*;
 
 import json.mapper.records.(RecordFieldJsonMapper);
+import json.mapper.records.(RecordFieldIntermediate);
 import json.mapper.records.(mapRecordFieldToJson);
 import json.mapper.records.(mapRecordFieldFromJson);
 
@@ -136,6 +137,25 @@ testRecordWithCustomFieldSerializerFromJson(test) {
 }
 
 
+record RecordWithIntMappedToString (
+    size: Int,
+);
+
+overload RecordFieldIntermediate(#RecordWithIntMappedToString, #"size") = String;
+
+testRecordWithIntermediateTypeToJson(test) {
+    var r = RecordWithIntMappedToString(12);
+    var expected = JsonObject([size: "12"]);
+    expectEqual(test, "record", expected, mapToJsonQuick(r));
+}
+
+testRecordWithIntermediateTypeFromJson(test) {
+    var j = JsonObject([size: "13"]);
+    var expected = RecordWithIntMappedToString(13);
+    expectEqual(test, "record", expected, mapFromJsonQuick(RecordWithIntMappedToString, j));
+}
+
+
 ///
 
 mapperRecordsTestSuite() =
@@ -151,10 +171,12 @@ mapperRecordsTestSuite() =
             TestCase("excluded field from json", testRecordWithExcludedFieldFromJson),
             TestCase("custom field serializer to json", testRecordWithCustomFieldSerializerToJson),
             TestCase("custom field serializer from json", testRecordWithCustomFieldSerializerFromJson),
+            TestCase("custom intermediate type to json", testRecordWithIntermediateTypeToJson),
+            TestCase("custom intermediate type from json", testRecordWithIntermediateTypeFromJson),
         )
     );
 
-    
+
 mapperRecordsTestMain() = testMain(mapperRecordsTestSuite());
 
 main() = mapperRecordsTestMain();

@@ -1,0 +1,71 @@
+import strings.*;
+import printer.*;
+
+
+define ConverterLeftRight(C);
+
+ConverterLeft(C) = nthValue(#0, ..ConverterLeftRight(C));
+ConverterRight(C) = nthValue(#1, ..ConverterLeftRight(C));
+
+Converter?(C) = CallDefined?(ConverterLeftRight, Type(C));
+
+define Converter(A, B);
+
+[C when Converter?(C)]
+define convertLeftToRight(converter: C, left);
+[C when Converter?(C)]
+define convertRightToLeft(converter: C, right);
+
+
+
+/// ConstructorConverter
+
+record ConstructorConverter[A, B] ();
+
+[A, B]
+overload ConverterLeftRight(#ConstructorConverter[A, B]) = A, B;
+
+[A, B]
+overload convertLeftToRight(converter: ConstructorConverter[A, B], left: A) = B(left);
+[A, B]
+overload convertRightToLeft(converter: ConstructorConverter[A, B], right: B) = A(right);
+
+[A, B when CallDefined?(A, B) and CallDefined?(B, A)]
+overload Converter(#A, #B) = ConstructorConverter[A, B];
+
+
+
+/// ToStringConverter
+
+record ToStringConverter[A] ();
+
+[A]
+overload convertLeftToRight(converter: ToStringConverter[A], left: A) = str(left);
+[A]
+overload convertRightToLeft(converter: ToStringConverter[A], right: String) = A(right);
+
+[A]
+overload ConverterLeftRight(#ToStringConverter[A]) = A, String;
+
+[A]
+overload Converter(#A, String) = ToStringConverter[A];
+
+
+
+/// IdentityConverter
+
+record IdentityConverter[A] ();
+
+[A]
+overload convertLeftToRight(converter: IdentityConverter[A], left: A) = left;
+[A]
+overload convertRightToLeft(converter: IdentityConverter[A], right: A) = right;
+
+[A]
+overload ConverterLeftRight(#IdentityConverter[A]) = A, A;
+
+[A]
+overload Converter(#A, #A) = IdentityConverter[A];
+
+
+
