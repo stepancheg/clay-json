@@ -24,9 +24,24 @@ overload Decimal(value: U) = Decimal(value, 0);
 overload Decimal(s: S) = parseDecimal(s);
 
 overload printTo(stream, d: Decimal) {
-    printTo(stream, d.unscaled);
-    printTo(stream, 'e');
-    printTo(stream, d.scale);
+    if (d.scale == 0) {
+        printTo(stream, d.unscaled);
+    } else if (d.scale < 0) {
+        // TODO: make cheap
+        var s = str(d.unscaled);
+        if (size(s) > -d.scale) {
+            insert(s, Int(size(s)) + d.scale, '.');
+            printTo(stream, s);
+        } else {
+            printTo(stream, d.unscaled);
+            printTo(stream, 'e');
+            printTo(stream, d.scale);
+        }
+    } else {
+        printTo(stream, d.unscaled);
+        printTo(stream, 'e');
+        printTo(stream, d.scale);
+    }
 }
 
 [N, I when /*Numeric?(N) and*/ Integer?(I)]
@@ -56,13 +71,32 @@ overload equals?(d1: Decimal, d2: Decimal) {
     return exp10(d1.unscaled, maxScale - d2.scale) == exp10(d2.unscaled, maxScale - d1.scale);
 }
 
-overload add(d1: Decimal, d2: Decimal) {
+[N2 when Numeric?(N2)]
+overload (+)(a: Decimal, b: N2) = a + Decimal(b);
+
+[N1 when Numeric?(N1)]
+overload (+)(a: N1, b: Decimal) = Decimal(a) + b;
+
+overload (+)(d1: Decimal, d2: Decimal) {
     var scale = min(d1.scale, d2.scale);
     return Decimal(changeScale(d1, scale).unscaled + changeScale(d2, scale).unscaled, scale);
 }
 
+overload (-)(a: Decimal, b: Decimal) = a + -b;
+
 overload (-)(d: Decimal) =
     Decimal(-d.unscaled, d.scale);
+
+[N when Numeric?(N)]
+overload (*)(a: Decimal, b: N) =
+    a * Decimal(b);
+
+[N when Numeric?(N)]
+overload (*)(a: N, b: Decimal) =
+    Decimal(a) * b;
+
+overload (*)(a: Decimal, b: Decimal) =
+    Decimal(a.unscaled * b.unscaled, a.scale + b.scale);
 
 [I]
 private convertToInteger(#I, d: Decimal) =
@@ -83,3 +117,7 @@ changeScale(d: Decimal, scale) =
 
 shiftScale(d: Decimal, delta) =
     changeScale(d, d.scale + delta);
+
+
+overload Greatest(#Decimal) = Decimal(Greatest(Unscaled), Greatest(Scale));
+
