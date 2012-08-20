@@ -1,8 +1,10 @@
 import strings.*;
 import vectors.*;
 import printer.*;
+import strings.encodings.utf8.*;
 
 import json.support.decimal.*;
+import json.support.unicode.*;
 
 /// model
 
@@ -10,7 +12,7 @@ record JsonArray (
     data: Vector[JsonValue]
 );
 
-alias JsonObjectKeyValue = Tuple[String, JsonValue];
+alias JsonObjectKeyValue = Tuple[UTF8String, JsonValue];
 
 record JsonObject (
     data: Vector[JsonObjectKeyValue]
@@ -25,7 +27,7 @@ record JsonNumber (
 
 record JsonString (
     // unquoted
-    value: String
+    value: UTF8String
 );
 
 record JsonBoolean (
@@ -62,7 +64,8 @@ overload Decimal(value: JsonValue) = getNumber(value).value;
 [I when Numeric?(I)]
 overload I(value: JsonValue) = I(Decimal(value));
 
-overload String(value: JsonValue) = getString(value).value;
+overload UTF8String(value: JsonValue) = getString(value).value;
+overload String(value: JsonValue) = UTF8String(value).encoded;
 
 [N when N != Decimal and N != JsonNumber]
 overload JsonNumber(n: N) = JsonNumber(Decimal(n));
@@ -73,8 +76,8 @@ overload N(j: JsonNumber) = N(j.value);
 [N when Numeric?(N)]
 overload N(j: JsonValue) = N(getNumber(j));
 
-[S when S != String and S != JsonString]
-overload JsonString(s: S) = JsonString(String(s));
+[S when S != UTF8String and S != JsonString]
+overload JsonString(s: S) = JsonString(UTF8String(s));
 
 [..T]
 overload JsonArray(v: Tuple[..T]) {
@@ -92,11 +95,11 @@ overload JsonArray(s: S) {
     return r;
 }
 
-private define stringForKey(s): String;
+private define stringForKey(s): UTF8String;
 [S when String?(S)]
-overload stringForKey(s: S) = String(s);
+overload stringForKey(s: S) = UTF8String(s);
 [S]
-overload stringForKey(#S) = stringForKey(CStringRef(cstring(StaticName(S))));
+overload stringForKey(#S) = stringForKey(CStringRef(StaticName(S)));
 
 [T]
 private KeyValueTuple?(#T) = Tuple?(T) and TupleElementCount(T) == 2 and CallDefined?(stringForKey, nthValue(#0, ..TupleElements(T)));
@@ -174,7 +177,6 @@ overload size(j: J): SizeT {
 }
 overload size(array: JsonArray) = size(array.data);
 overload size(object: JsonObject) = size(object.data);
-overload size(string: JsonString) = size(string.value);
 
 overload size(value: JsonValue) = size(*value);
 

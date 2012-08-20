@@ -1,0 +1,31 @@
+import strings.*;
+import strings.encodings.utf8.*;
+import vectors.*;
+
+
+alias UniString = Vector[UniChar];
+alias UTF8String = UTF8[String];
+
+overload UTF8String(s: UniString) {
+    var r = UTF8String();
+    for (c in s) {
+        push(r, c);
+    }
+    return r;
+}
+
+[S when String?(S)]
+overload UTF8String(s: S) = initializeRecord(UTF8String, String(s));
+
+overload String(u: UTF8String) = u.encoded;
+
+
+UniString?(S) = false;
+
+[S when String?(S)]
+overload UniString?(#UTF8[S]) = true;
+
+[S when Sequence?(S) and SequenceElementType(S) == UniChar]
+overload UniString?(#S) = true;
+
+AnyString?(S) = String?(S) or UniString?(S);

@@ -7,6 +7,7 @@ import printer.*;
 import json.*;
 import json.escape.*;
 import json.support.decimal.*;
+import json.support.unicode.*;
 
 
 // tokenizer
@@ -25,7 +26,7 @@ private enum JsonTokenType (
     NULL_TYPE,
 );
 
-private variant JsonTokenData (String, Decimal, Nothing);
+private variant JsonTokenData (UTF8String, Decimal, Nothing);
 
 private record JsonToken (
     type: JsonTokenType,
@@ -116,13 +117,10 @@ private var decimalParser =
     );
 
 unescapeCharParser(escape, value) =
-    modify(c => value, condition(c => c == escape));
+    modify(c => UniChar(value), condition(c => c == escape));
 
-overload bitor(d1, d2, d3, d4) =
-    bitor(bitor(d1, d2), bitor(d3, d4));
-
-private makeU(d1, d2, d3, d4) =
-    bitor(bitshl(d1, 12), bitshl(d2, 8), bitshl(d3, 4), bitshl(d4, 0));
+private makeU(d1, d2, d3, d4): UniChar =
+    UniChar(bitor(bitshl(d1, 12), bitshl(d2, 8), bitshl(d3, 4), bitshl(d4, 0)));
 
 private var stringCharParser =
     choice(
@@ -130,13 +128,13 @@ private var stringCharParser =
             [
                 condition(c -> c == '\\'),
                 choice(
-                    condition(c -> c == '"' or c == '\\'),
+                    modify(UniChar, condition(c -> c == '"' or c == '\\')),
                     unescapeCharParser('n', '\n'),
                     unescapeCharParser('r', '\r'),
                     unescapeCharParser('t', '\t'),
                     unescapeCharParser('f', '\x0c'),
                     unescapeCharParser('b', '\x08'),
-                    modify(t -> Char(makeU(t.1, t.2, t.3, t.4)), [
+                    modify(t -> makeU(t.1, t.2, t.3, t.4), [
                         condition(c -> c == 'u'),
                         hexdigitValueParser,
                         hexdigitValueParser,
@@ -146,12 +144,12 @@ private var stringCharParser =
                 ),
             ]
         ),
-        condition(c -> c != '"'),
+        modify(UniChar, condition(c -> c != '"')),
     );
 
 private var stringTokenParser =
     modify(
-        t -> JsonToken(STRING_TYPE, JsonTokenData(t.1)),
+        t -> JsonToken(STRING_TYPE, JsonTokenData(UTF8String(t.1))),
         [
             '"',
             zeroOrMore(stringCharParser),
@@ -204,7 +202,7 @@ private var jsonCombinators = Combinators[Type(iterator(Vector[JsonToken]()))]()
 
 private tokenTypeParser(tokenType) = jsonCombinators.condition(t => t.type == tokenType);
 
-private var stringValueParser = jsonCombinators.modify(t -> variantAs(t.data, String), tokenTypeParser(STRING_TYPE));
+private var stringValueParser = jsonCombinators.modify(t -> variantAs(t.data, UTF8String), tokenTypeParser(STRING_TYPE));
 
 private var nullParser = jsonCombinators.modify(t -> JsonNull(), tokenTypeParser(NULL_TYPE));
 private var trueParser = jsonCombinators.modify(t -> JsonBoolean(true), tokenTypeParser(TRUE_TYPE));

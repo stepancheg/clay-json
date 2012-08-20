@@ -2,20 +2,22 @@ import strings.*;
 
 import json.model.*;
 import json.mapper.*;
+import json.support.unicode.*;
 
 
+[S when AnyString?(S)]
 record StringJsonMapper[S] ();
 
 [S]
 overload JsonMapperMaps(#StringJsonMapper[S]) = S, JsonString;
 
-[S when String?(S)]
+[S when AnyString?(S)]
 overload JsonMapper(#S) = StringJsonMapper[S];
 
-[S when String?(S)]
+[S when AnyString?(S)]
 overload mapToJson(m: StringJsonMapper[S], s: S) = JsonString(s);
 
-[S when String?(S)]
+[S when AnyString?(S)]
 overload mapFromJson(m: StringJsonMapper[S], j: JsonString) = S(j.value);
 
 

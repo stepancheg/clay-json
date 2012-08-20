@@ -74,7 +74,7 @@ parserTestSuite() =
             TestCase("parse string u escapes", test => {
                 var s = parseJson("\"\\u0001\\u00a5\"");
                 expectTrue(test, "isString", isString(s));
-                expectEqual(test, "==", "\x01\xa5", String(s));
+                expectEqual(test, "==", "\x01\xc2\xa5", String(s));
             }),
             TestCase("parse object 0", test => {
                 var o = parseJson("{}");

@@ -12,7 +12,7 @@ private hexDigit(n): Char {
     }
 }
 
-private unsigned(c: Char) = UInt8(c);
+private unsigned(c) = UnsignedIntegerOfSize(#Int(TypeSize(Type(c))))(c);
 
 private quoteJsonCharTo(stream, c) {
     alias CharType = Type(c);
