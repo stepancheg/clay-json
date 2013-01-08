@@ -6,64 +6,64 @@ import json.*;
 import json.printer.*;
 
 [V when VariantMember?(JsonValue, V)]
-private expectPrinted(test, name, expected, value: V) {
-    expectEqual(test, name, expected, str(value));
-    expectEqual(test, name ++ " wrapped", expected, str(JsonValue(value)));
+private expectPrinted(expected, value: V) {
+    expectEqual(expected, str(value));
+    expectEqual(expected, str(JsonValue(value)));
 }
 
 [V when VariantMember?(JsonValue, V)]
-private expectPrintedPretty(test, name, expected, value: V) {
-    expectEqual(test, name, expected, strPretty(value));
-    expectEqual(test, name ++ " wrapped", expected, strPretty(JsonValue(value)));
+private expectPrintedPretty(expected, value: V) {
+    expectEqual(expected, strPretty(value));
+    expectEqual(expected, strPretty(JsonValue(value)));
 }
 
 printerTestSuite() =
     TestSuite(
         "printer", array(
-            TestCase("null", test => {
-                expectPrinted(test, "null", "null", JsonNull());
+            TestCase("null", => {
+                expectPrinted("null", JsonNull());
             }),
-            TestCase("boolean", test => {
-                expectPrinted(test, "true", "true", JsonBoolean(true));
-                expectPrinted(test, "false", "false", JsonBoolean(false));
+            TestCase("boolean", => {
+                expectPrinted("true", JsonBoolean(true));
+                expectPrinted("false", JsonBoolean(false));
             }),
-            TestCase("number", test => {
-                expectPrinted(test, "12", "12", JsonNumber(12));
+            TestCase("number", => {
+                expectPrinted("12", JsonNumber(12));
             }),
-            TestCase("string", test => {
-                expectPrinted(test, "\"abc\"", "\"abc\"", JsonString("abc"));
+            TestCase("string", => {
+                expectPrinted("\"abc\"", JsonString("abc"));
             }),
-            TestCase("array", test => {
+            TestCase("array", => {
                 var array = JsonArray();
-                expectPrinted(test, "empty array", "[]", array);
+                expectPrinted("[]", array);
                 push(array, 17);
-                expectPrinted(test, "array of 1", "[17]", array);
+                expectPrinted("[17]", array);
                 push(array, "xy");
-                expectPrinted(test, "array of 2", "[17, \"xy\"]", array);
+                expectPrinted("[17, \"xy\"]", array);
             }),
-            TestCase("array pretty", test => {
+            TestCase("array pretty", => {
                 var array = JsonArray();
-                expectPrintedPretty(test, "empty array", "[]", array);
+                expectPrintedPretty("[]", array);
                 push(array, 37);
-                expectPrintedPretty(test, "array of 1", "[\n    37\n]", array);
+                expectPrintedPretty("[\n    37\n]", array);
                 push(array, "zw");
-                expectPrintedPretty(test, "array of 1", "[\n    37,\n    \"zw\"\n]", array);
+                expectPrintedPretty("[\n    37,\n    \"zw\"\n]", array);
             }),
-            TestCase("object", test => {
+            TestCase("object", => {
                 var object = JsonObject();
-                expectPrinted(test, "empty object", "{}", object);
+                expectPrinted("{}", object);
                 put(object, "hello", 5);
-                expectPrinted(test, "empty object", "{\"hello\": 5}", object);
+                expectPrinted("{\"hello\": 5}", object);
                 put(object, "world", JsonArray());
-                expectPrinted(test, "empty object", "{\"hello\": 5, \"world\": []}", object);
+                expectPrinted("{\"hello\": 5, \"world\": []}", object);
             }),
-            TestCase("object pretty", test => {
+            TestCase("object pretty", => {
                 var object = JsonObject();
-                expectPrintedPretty(test, "empty object", "{}", object);
+                expectPrintedPretty("{}", object);
                 put(object, "hello", 9);
-                expectPrintedPretty(test, "object of 1", "{\n    \"hello\": 9\n}", object);
+                expectPrintedPretty("{\n    \"hello\": 9\n}", object);
                 put(object, "world", JsonArray());
-                expectPrintedPretty(test, "object of 2", "{\n    \"hello\": 9,\n    \"world\": []\n}", object);
+                expectPrintedPretty("{\n    \"hello\": 9,\n    \"world\": []\n}", object);
             }),
         )
     );

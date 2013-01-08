@@ -7,70 +7,70 @@ import json.support.decimal.*;
 decimalTestSuite() =
     TestSuite(
         "decimal", array(
-            TestCase("str", test => {
-                expectEqual(test, "3e5", "3e5", str(Decimal(3, 5)));
-                expectEqual(test, "1213", "1213", str(Decimal(1213, 0)));
-                expectEqual(test, "121.3", "121.3", str(Decimal(1213, -1)));
-                expectEqual(test, "12.13", "12.13", str(Decimal(1213, -2)));
-                expectEqual(test, "1.213", "1.213", str(Decimal(1213, -3)));
-                expectEqual(test, "1213e-4", "1213e-4", str(Decimal(1213, -4)));
-                expectEqual(test, "1213e-5", "1213e-5", str(Decimal(1213, -5)));
-                expectEqual(test, "1213e-6", "1213e-6", str(Decimal(1213, -6)));
+            TestCase("str", => {
+                expectEqual("3e5", str(Decimal(3, 5)));
+                expectEqual("1213", str(Decimal(1213, 0)));
+                expectEqual("121.3", str(Decimal(1213, -1)));
+                expectEqual("12.13", str(Decimal(1213, -2)));
+                expectEqual("1.213", str(Decimal(1213, -3)));
+                expectEqual("1213e-4", str(Decimal(1213, -4)));
+                expectEqual("1213e-5", str(Decimal(1213, -5)));
+                expectEqual("1213e-6", str(Decimal(1213, -6)));
             }),
-            TestCase("parse", test => {
-                expectEqual(test, "3e5", Decimal(3, 5), Decimal("3e5"));
+            TestCase("parse", => {
+                expectEqual(Decimal(3, 5), Decimal("3e5"));
                 try {
                     Decimal("3e5x");
-                    expectTrue(test, "expecting exception", false);
+                    expectTrue(false);
                 } catch (e) {
                     // ok
                 }
             }),
-            TestCase("==", test => {
-                expectEqual(test, "decimal", Decimal(1000, 0), Decimal(1, 3));
-                expectEqual(test, "decimal", Decimal(1000, -10), Decimal(1, -7));
-                expectNotEqual(test, "decimal", Decimal(1003, 0), Decimal(1, 3));
-                expectNotEqual(test, "decimal", Decimal(1000, 0), Decimal(1004, 0));
+            TestCase("==", => {
+                expectEqual(Decimal(1000, 0), Decimal(1, 3));
+                expectEqual(Decimal(1000, -10), Decimal(1, -7));
+                expectNotEqual(Decimal(1003, 0), Decimal(1, 3));
+                expectNotEqual(Decimal(1000, 0), Decimal(1004, 0));
             }),
-            TestCase("== negative", test => {
-                expectEqual(test, "negative", Decimal(-1000, 0), Decimal(-1, 3));
-                expectNotEqual(test, "negative", Decimal(-1000, 30), Decimal(1000, 30));
+            TestCase("== negative", => {
+                expectEqual(Decimal(-1000, 0), Decimal(-1, 3));
+                expectNotEqual(Decimal(-1000, 30), Decimal(1000, 30));
             }),
-            TestCase("without scale", test => {
-                expectEqual(test, "without scale", Decimal(1200), Decimal(12, 2));
+            TestCase("without scale", => {
+                expectEqual(Decimal(1200), Decimal(12, 2));
             }),
-            TestCase("convert to integer", test => {
-                expectEqual(test, "to integer", Int(Decimal(1000, -3)), 1);
-                expectEqual(test, "to integer", Int(Decimal(1000, 3)), 1000000);
-                expectEqual(test, "to integer", Int(Decimal(-1000, -3)), -1);
+            TestCase("convert to integer", => {
+                expectEqual(Int(Decimal(1000, -3)), 1);
+                expectEqual(Int(Decimal(1000, 3)), 1000000);
+                expectEqual(Int(Decimal(-1000, -3)), -1);
             }),
-            TestCase("convert to float", test => {
-                expectEqual(test, "to float", 1.5f, Float(Decimal(15, -1)));
-                expectEqual(test, "to float", 1.5e5fl, Float64(Decimal(15, 4)));
+            TestCase("convert to float", => {
+                expectEqual(1.5f, Float(Decimal(15, -1)));
+                expectEqual(1.5e5fl, Float64(Decimal(15, 4)));
             }),
-            TestCase("changeScale", test => {
+            TestCase("changeScale", => {
                 var d = Decimal(1234, 4);
                 var d1 = changeScale(d, 1);
-                expectEqual(test, "scale", d, d1);
+                expectEqual(d, d1);
             }),
-            TestCase("shiftScale", test => {
+            TestCase("shiftScale", => {
                 var d = Decimal(1234, 4);
                 var d1 = shiftScale(d, -2);
-                expectEqual(test, "scale", d, d1);
+                expectEqual(d, d1);
             }),
-            TestCase("exp10", test => {
+            TestCase("exp10", => {
                 var d = exp10(Decimal(123, 2), -3);
                 var expected = Decimal(123, -1);
-                expectEqual(test, "exp10", expected, d);
+                expectEqual(expected, d);
             }),
-            TestCase("+", test => {
-                expectEqual(test, "+", Decimal(1012), Decimal(1, 3) + Decimal(12));
+            TestCase("+", => {
+                expectEqual(Decimal(1012), Decimal(1, 3) + Decimal(12));
             }),
-            TestCase("*", test => {
-                expectEqual(test, "*", Decimal(43520), Decimal(128, 2) * Decimal(34, -1));
+            TestCase("*", => {
+                expectEqual(Decimal(43520), Decimal(128, 2) * Decimal(34, -1));
             }),
-            TestCase("unary -", test => {
-                expectEqual(test, "-", Decimal(-1200), -Decimal(12, 2));
+            TestCase("unary -", => {
+                expectEqual(Decimal(-1200), -Decimal(12, 2));
             }),
         )
     );

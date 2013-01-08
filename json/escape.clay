@@ -1,5 +1,5 @@
-import strings.*;
-import vectors.generic.*;
+import data.strings.*;
+import data.vectors.generic.*;
 import printer.*;
 
 

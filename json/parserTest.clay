@@ -1,4 +1,4 @@
-import strings.*;
+import data.strings.*;
 import printer.*;
 
 import test.*;
@@ -10,104 +10,104 @@ import json.support.decimal.*;
 parserTestSuite() =
     TestSuite(
         "parser", array(
-            TestCase("parse null", test => {
+            TestCase("parse null", => {
                 var r = parseJson("null");
-                expectTrue(test, "isNull", isNull(r));
+                expectTrue(isNull(r));
             }),
-            TestCase("leading and trailing spaces", test => {
+            TestCase("leading and trailing spaces", => {
                 var r = parseJson("\n\rnull \t");
-                expectTrue(test, "isNull", isNull(r));
+                expectTrue(isNull(r));
             }),
-            TestCase("parse boolean", test => {
+            TestCase("parse boolean", => {
                 var t = parseJson("true");
                 var f = parseJson("false");
-                expectTrue(test, "isBoolean", isBoolean(t));
-                expectTrue(test, "isBoolean", isBoolean(f));
-                expectTrue(test, "Bool", Bool(t));
-                expectFalse(test, "Bool", Bool(f));
+                expectTrue(isBoolean(t));
+                expectTrue(isBoolean(f));
+                expectTrue(Bool(t));
+                expectFalse(Bool(f));
             }),
-            TestCase("parse int", test => {
+            TestCase("parse int", => {
                 var seventeen = parseJson("17");
-                expectTrue(test, "isNumber", isNumber(seventeen));
-                expectEqual(test, "== 17", 17, Int(seventeen));
+                expectTrue(isNumber(seventeen));
+                expectEqual(17, Int(seventeen));
             }),
-            TestCase("parse signed int", test => {
+            TestCase("parse signed int", => {
                 var minusSeventeen = parseJson("-17");
-                expectTrue(test, "isNumber", isNumber(minusSeventeen));
-                expectEqual(test, "== -17", -17, Int(minusSeventeen));
+                expectTrue(isNumber(minusSeventeen));
+                expectEqual(-17, Int(minusSeventeen));
             }),
-            TestCase("parse 1.5", test => {
+            TestCase("parse 1.5", => {
                 var oneAndHalf = parseJson("1.5");
-                expectTrue(test, "isNumber", isNumber(oneAndHalf));
-                expectEqual(test, "== 1.5", Decimal(15, -1), Decimal(oneAndHalf));
+                expectTrue(isNumber(oneAndHalf));
+                expectEqual(Decimal(15, -1), Decimal(oneAndHalf));
             }),
-            TestCase("parse 1.5e5", test => {
+            TestCase("parse 1.5e5", => {
                 var oneAndHalf = parseJson("1.5e5");
-                expectTrue(test, "isNumber", isNumber(oneAndHalf));
-                expectEqual(test, "== 1.5e5", Decimal(15, 4), Decimal(oneAndHalf));
+                expectTrue(isNumber(oneAndHalf));
+                expectEqual(Decimal(15, 4), Decimal(oneAndHalf));
             }),
-            TestCase("parse string simple", test => {
+            TestCase("parse string simple", => {
                 var s = parseJson("\"hi\"");
-                expectTrue(test, "isString", isString(s));
-                expectEqual(test, "==", "hi", String(s));
+                expectTrue(isString(s));
+                expectEqual("hi", String(s));
             }),
-            TestCase("parse string quote", test => {
+            TestCase("parse string quote", => {
                 var s = parseJson("\"\\\"\"");
-                expectTrue(test, "isString", isString(s));
-                expectEqual(test, "==", "\"", String(s));
+                expectTrue(isString(s));
+                expectEqual("\"", String(s));
             }),
-            TestCase("parse string backslash", test => {
+            TestCase("parse string backslash", => {
                 var s = parseJson("\"\\\\\"");
-                expectTrue(test, "isString", isString(s));
-                expectEqual(test, "==", "\\", String(s));
+                expectTrue(isString(s));
+                expectEqual("\\", String(s));
             }),
-            TestCase("parse string tab", test => {
+            TestCase("parse string tab", => {
                 var s = parseJson("\"\\t\"");
-                expectTrue(test, "isString", isString(s));
-                expectEqual(test, "==", "\t", String(s));
+                expectTrue(isString(s));
+                expectEqual("\t", String(s));
             }),
-            TestCase("parse string newline", test => {
+            TestCase("parse string newline", => {
                 var s = parseJson("\"\\n\"");
-                expectTrue(test, "isString", isString(s));
-                expectEqual(test, "==", "\n", String(s));
+                expectTrue(isString(s));
+                expectEqual("\n", String(s));
             }),
-            TestCase("parse string u escapes", test => {
+            TestCase("parse string u escapes", => {
                 var s = parseJson("\"\\u0001\\u00a5\"");
-                expectTrue(test, "isString", isString(s));
-                expectEqual(test, "==", "\x01\xc2\xa5", String(s));
+                expectTrue(isString(s));
+                expectEqual("\x01\xc2\xa5", String(s));
             }),
-            TestCase("parse object 0", test => {
+            TestCase("parse object 0", => {
                 var o = parseJson("{}");
-                expectTrue(test, "isObject", isObject(o));
-                expectEqual(test, "size", 0, size(o));
+                expectTrue(isObject(o));
+                expectEqual(0, size(o));
             }),
-            TestCase("parse object 1", test => {
+            TestCase("parse object 1", => {
                 var o = parseJson("{ \"kkk\": 888 }");
-                expectTrue(test, "isObject", isObject(o));
-                expectEqual(test, "size", 1, size(o));
+                expectTrue(isObject(o));
+                expectEqual(1, size(o));
                 // TODO: check content
             }),
-            TestCase("parse array 0", test => {
+            TestCase("parse array 0", => {
                 var a = parseJson("[]");
-                expectTrue(test, "isArray", isArray(a));
-                expectEqual(test, "size", 0, size(a));
+                expectTrue(isArray(a));
+                expectEqual(0, size(a));
             }),
-            TestCase("parse array 1", test => {
+            TestCase("parse array 1", => {
                 var a = parseJson("[17]");
-                expectTrue(test, "isArray", isArray(a));
-                expectEqual(test, "size", 1, size(a));
-                expectTrue(test, "[0] is number", isNumber(getArray(a)[0]));
-                expectEqual(test, "[0]", 17, Int(getArray(a)[0]));
-                expectEqual(test, "[0]", 17, Int(a[0]));
+                expectTrue(isArray(a));
+                expectEqual(1, size(a));
+                expectTrue(isNumber(getArray(a)[0]));
+                expectEqual(17, Int(getArray(a)[0]));
+                expectEqual(17, Int(a[0]));
             }),
-            TestCase("parse array 2", test => {
+            TestCase("parse array 2", => {
                 var a = parseJson("[\"ab\", 12]");
-                expectTrue(test, "isArray", isArray(a));
-                expectEqual(test, "size", 2, size(a));
-                expectTrue(test, "[0] is string", isString(getArray(a)[0]));
-                expectEqual(test, "[0]", "ab", String(getArray(a)[0]));
-                expectTrue(test, "[1] is number", isNumber(getArray(a)[1]));
-                expectEqual(test, "[1]", 12, Int(getArray(a)[1]));
+                expectTrue(isArray(a));
+                expectEqual(2, size(a));
+                expectTrue(isString(getArray(a)[0]));
+                expectEqual("ab", String(getArray(a)[0]));
+                expectTrue(isNumber(getArray(a)[1]));
+                expectEqual(12, Int(getArray(a)[1]));
             }),
         ),
     );

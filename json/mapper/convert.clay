@@ -1,4 +1,6 @@
-import strings.*;
+import numbers.parser.(parse);
+
+import data.strings.*;
 import printer.*;
 
 
@@ -42,7 +44,7 @@ record ToStringConverter[A] ();
 [A]
 overload convertLeftToRight(converter: ToStringConverter[A], left: A) = str(left);
 [A]
-overload convertRightToLeft(converter: ToStringConverter[A], right: String) = A(right);
+overload convertRightToLeft(converter: ToStringConverter[A], right: String) = parse(A, right);
 
 [A]
 overload ConverterLeftRight(#ToStringConverter[A]) = A, String;

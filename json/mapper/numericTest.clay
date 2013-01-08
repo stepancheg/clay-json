@@ -6,17 +6,17 @@ import json.mapper.*;
 mapperNumericTestSuite() =
     TestSuite(
         "mapper.numeric", array(
-            TestCase("numbers to json", test => {
+            TestCase("numbers to json", => {
                 // TODO: float, decimal
                 ..for (i in 1, 2u, 3ul, 4s) {
-                    expectEqual(test, "number", JsonNumber(i), mapToJsonQuick(i));
+                    expectEqual(JsonNumber(i), mapToJsonQuick(i));
                 }
             }),
-            TestCase("numbers from json", test => {
+            TestCase("numbers from json", => {
                 // TODO: float, decimal
                 ..for (i in 1, 2u, 3ul, 4s) {
-                    expectEqual(test, "number", i, mapFromJsonQuick(Type(i), JsonNumber(i)));
-                    expectEqual(test, "number", i, mapFromJsonQuick(Type(i), JsonValue(JsonNumber(i))));
+                    expectEqual(i, mapFromJsonQuick(Type(i), JsonNumber(i)));
+                    expectEqual(i, mapFromJsonQuick(Type(i), JsonValue(JsonNumber(i))));
                 }
             }),
         )

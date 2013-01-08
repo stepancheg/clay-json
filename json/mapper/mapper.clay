@@ -2,6 +2,8 @@ import lambdas.*;
 
 import json.model.*;
 
+import json.mapper.protocol.*;
+
 
 import json.mapper.bool.*;
 
@@ -23,28 +25,7 @@ import json.mapper.tuple.*;
 
 
 [T]
-define JsonMapper(#T);
-
-[T]
 jsonMapper(#T) = JsonMapper(T)();
-
-[M]
-define JsonMapperMaps(#M);
-
-[M]
-JsonMapper?(#M) = CallDefined?(JsonMapperMaps, Static[M]);
-
-[M]
-JsonMapperMapsFrom(#M) = nthValue(#0, ..JsonMapperMaps(M));
-[M]
-JsonMapperMapsTo(#M) = nthValue(#1, ..JsonMapperMaps(M));
-
-[M, T when JsonMapper?(M) and JsonMapperMapsFrom(M) == T]
-define mapToJson(m: M, t: T);
-
-[M, J when JsonMapper?(M) and JsonAnything?(J)]
-define mapFromJson(m: M, j: J);
-
 
 [M when JsonMapper?(M) and JsonMapperMapsTo(M) != JsonValue]
 overload mapFromJson(m: M, j: JsonValue) =

@@ -1,10 +1,10 @@
 import parsing.combinators.strings.*;
 import parsing.combinators.wrapper.*;
-import vectors.*;
-import strings.*;
+import data.vectors.*;
+import data.strings.*;
 import printer.*;
 
-import json.*;
+import json.model.*;
 import json.escape.*;
 import json.support.decimal.*;
 import json.support.unicode.*;
@@ -172,7 +172,7 @@ private var tokenParser = choice(
     stringTokenParser,
 );
 
-parseDecimal(input): Decimal {
+overload parseDecimal(input): Decimal {
     var it = iterator(input);
     var r = require(decimalParser(it));
     if (hasValue?(nextValue(it))) {

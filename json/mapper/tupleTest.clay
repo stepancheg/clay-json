@@ -1,4 +1,4 @@
-import strings.*;
+import data.strings.*;
 
 import test.*;
 
@@ -8,13 +8,13 @@ import json.mapper.*;
 mapperTupleTestSuite() =
     TestSuite(
         "mapper.tuple", array(
-            TestCase("tuple to json", test => {
+            TestCase("tuple to json", => {
                 var j = mapToJsonQuick([1, "a", [true]]);
-                expectEqual(test, "tuple", JsonArray([1, "a", JsonArray([true])]), j);
+                expectEqual(JsonArray([1, "a", JsonArray([true])]), j);
             }),
-            TestCase("tuple from json", test => {
+            TestCase("tuple from json", => {
                 var j = JsonArray([2, "b", JsonArray([true])]);
-                expectEqual(test, "tuple", [2, String("b"), [true]], mapFromJsonQuick(Tuple[Int, String, Tuple[Bool]], j));
+                expectEqual([2, String("b"), [true]], mapFromJsonQuick(Tuple[Int, String, Tuple[Bool]], j));
             }),
         )
     );

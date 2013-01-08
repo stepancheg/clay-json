@@ -1,17 +1,20 @@
-import strings.*;
+import data.strings.*;
 
 import json.support.records.*;
 
 import json.model.*;
-import json.mapper.*;
+import json.mapper.protocol.*;
 import json.mapper.convert.*;
 
 
 
 // overload to specify custom json field name for record field
 // executed at compile time, must return static
+define RecordJsonFieldName(R, N);
+
 [R, N]
-RecordJsonFieldName(#R, #N) = N;
+overload RecordJsonFieldName(#R, #N) = N;
+
 
 // overload to specify custon json field name for record field
 // execute at mapper construction time, so mapToJsonQuick may be slow
@@ -20,22 +23,31 @@ RecordJsonFieldName(#R, #N) = N;
 define recordJsonFieldName(#R, #N);
 
 // overload to exclude some field from serialization and deserialization
+define IncludeRecordJsonField(R, N);
+
 [R, N]
-IncludeRecordJsonField(#R, #N) = true;
+overload IncludeRecordJsonField(#R, #N) = true;
 
 // overload to perform intermediate conversion
+define RecordFieldIntermediate(R, N);
+
 [R, N]
-RecordFieldIntermediate(#R, #N) = RecordFieldTypeByName(#R, #N);
+overload RecordFieldIntermediate(#R, #N) = RecordFieldTypeByName(#R, #N);
 
 // overload to perform intermediate conversion
+define RecordFieldToIntermediateConverter(R, N);
+
 [R, N]
-RecordFieldToIntermediateConverter(#R, #N) = Converter(RecordFieldTypeByName(#R, #N), RecordFieldIntermediate(#R, #N));
+overload RecordFieldToIntermediateConverter(#R, #N) = Converter(RecordFieldTypeByName(#R, #N), RecordFieldIntermediate(#R, #N));
 
 
 
 // field json name holder
 
-JsonNameHolder?(T) = false;
+define JsonNameHolder?(T): Bool;
+
+overload JsonNameHolder?(T) = false;
+
 [R when JsonNameHolder?(R)]
 define jsonNameHolderGet(r: R);
 
@@ -92,12 +104,17 @@ record RecordFieldJsonMapperDefault[R, FieldName] (
 RecordFieldJsonMapperFieldName(#RecordFieldJsonMapperDefault[R, FieldName]) = FieldName;
 
 
-[R, FieldName]
-RecordFieldJsonMapper(#R, #FieldName) = RecordFieldJsonMapperDefault[R, FieldName];
-
+define RecordFieldJsonMapper(R, FieldName);
 
 [R, FieldName]
-mapRecordFieldToJson(m: RecordFieldJsonMapperDefault[R, FieldName], r: R, j) {
+overload RecordFieldJsonMapper(#R, #FieldName) = RecordFieldJsonMapperDefault[R, FieldName];
+
+
+[R]
+define mapRecordFieldToJson(recordFieldJsonMapper, r: R, j):;
+
+[R, FieldName]
+overload mapRecordFieldToJson(m: RecordFieldJsonMapperDefault[R, FieldName], r: R, j) {
     alias FieldName = RecordFieldJsonMapperFieldName(Type(m));
     var jsonName = jsonNameHolderGet(m.jsonNameHolder);
     var intermediate = convertLeftToRight(m.intermediateConverter, fieldRef(r, FieldName));
@@ -105,15 +122,17 @@ mapRecordFieldToJson(m: RecordFieldJsonMapperDefault[R, FieldName], r: R, j) {
     put(j, jsonName, v);
 }
 
+[R]
+define mapRecordFieldFromJson(recordFieldJsonMapper, j, r: R):;
+
 [R, FieldName]
-mapRecordFieldFromJson(m: RecordFieldJsonMapperDefault[R, FieldName], j, r: R) {
+overload mapRecordFieldFromJson(m: RecordFieldJsonMapperDefault[R, FieldName], j, r: R) {
     alias FieldName = RecordFieldJsonMapperFieldName(Type(m));
     var jsonName = jsonNameHolderGet(m.jsonNameHolder);
     var jsonFieldValue = index(j, jsonName);
     var intermediate = mapFromJson(m.valueMapper, jsonFieldValue);
     fieldRef(r, FieldName) = convertRightToLeft(m.intermediateConverter, intermediate);
 }
-
 
 
 [R]

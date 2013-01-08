@@ -1,4 +1,4 @@
-import strings.*;
+import data.strings.*;
 
 import test.*;
 
@@ -9,23 +9,23 @@ import json.support.unicode.*;
 mapperStringTestSuite() =
     TestSuite(
         "mapper.string", array(
-            TestCase("string to json", test => {
+            TestCase("string to json", => {
                 var j = mapToJsonQuick(String("bla"));
-                expectEqual(test, "string", JsonString("bla"), j);
+                expectEqual(JsonString("bla"), j);
             }),
-            TestCase("string from json", test => {
+            TestCase("string from json", => {
                 var j = JsonString("The angels have the phone box");
-                expectEqual(test, "string", "The angels have the phone box", mapFromJsonQuick(String, j));
-                expectEqual(test, "string", "The angels have the phone box", mapFromJsonQuick(String, JsonValue(j)));
+                expectEqual("The angels have the phone box", mapFromJsonQuick(String, j));
+                expectEqual("The angels have the phone box", mapFromJsonQuick(String, JsonValue(j)));
             }),
-            TestCase("UTF8String from json", test => {
+            TestCase("UTF8String from json", => {
                 var j = JsonString("\xd1\x8f\xd1\x80");
-                expectEqual(test, "string", UTF8String("\xd1\x8f\xd1\x80"), mapFromJsonQuick(UTF8String, j));
-                expectEqual(test, "string", UTF8String("\xd1\x8f\xd1\x80"), mapFromJsonQuick(UTF8String, JsonValue(j)));
+                expectEqual(UTF8String("\xd1\x8f\xd1\x80"), mapFromJsonQuick(UTF8String, j));
+                expectEqual(UTF8String("\xd1\x8f\xd1\x80"), mapFromJsonQuick(UTF8String, JsonValue(j)));
             }),
-            TestCase("StringConstant to json", test => {
+            TestCase("StringConstant to json", => {
                 var j = mapToJsonQuick("yo");
-                expectEqual(test, "string constant", JsonString("yo"), j);
+                expectEqual(JsonString("yo"), j);
             }),
         )
     );

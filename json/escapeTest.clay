@@ -5,16 +5,16 @@ import json.escape.*;
 escapeTestSuite() =
     TestSuite(
         "escape", array(
-            TestCase("quoteJson", test => {
-                expectEqual(test, "empty", "\"\"", quoteJson(""));
-                expectEqual(test, "simple", """"ab"""", quoteJson("ab"));
-                expectEqual(test, "backslash", "\"\\\\\"", quoteJson("\\"));
-                expectEqual(test, "quote", "\"\\\"\"", quoteJson("\""));
-                expectEqual(test, "newline", "\"\\n\"", quoteJson("\n"));
-                expectEqual(test, "tab", "\"\\t\"", quoteJson("\t"));
-                expectEqual(test, "\\1", "\"\\u0001\"", quoteJson("\x01"));
-                expectEqual(test, "\\xab", "\"\\u00ab\"", quoteJson("\xab"));
-                expectEqual(test, "\\xff", "\"\\u00ff\"", quoteJson("\xff"));
+            TestCase("quoteJson", => {
+                expectEqual("\"\"", quoteJson(""));
+                expectEqual(""""ab"""", quoteJson("ab"));
+                expectEqual("\"\\\\\"", quoteJson("\\"));
+                expectEqual("\"\\\"\"", quoteJson("\""));
+                expectEqual("\"\\n\"", quoteJson("\n"));
+                expectEqual("\"\\t\"", quoteJson("\t"));
+                expectEqual("\"\\u0001\"", quoteJson("\x01"));
+                expectEqual("\"\\u00ab\"", quoteJson("\xab"));
+                expectEqual("\"\\u00ff\"", quoteJson("\xff"));
             }),
         ),
     );

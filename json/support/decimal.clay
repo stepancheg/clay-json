@@ -1,8 +1,6 @@
 import numbers.parser.*;
 import printer.*;
 
-import json.parser.(parseDecimal);
-
 record Decimal (
     unscaled: Int64,
     scale: Int32,
@@ -19,6 +17,9 @@ overload Decimal(unscaled: U, scale: S): Decimal = Decimal(Unscaled(unscaled), S
 
 [U when Integer?(U)]
 overload Decimal(value: U) = Decimal(value, 0);
+
+// import json.parser to get the implementation
+define parseDecimal(input): Decimal;
 
 [S when String?(S)]
 overload Decimal(s: S) = parseDecimal(s);
@@ -105,7 +106,7 @@ private convertToInteger(#I, d: Decimal) =
 [F]
 private convertToFloat(#F, d: Decimal) =
     // TODO: lame
-    F(str(d));
+    parse(F, str(d));
 
 [N when Integer?(N)]
 overload N(d: Decimal) = convertToInteger(N, d);

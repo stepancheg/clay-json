@@ -1,6 +1,6 @@
-import strings.*;
+import data.strings.*;
+import data.sequences.*;
 import printer.*;
-import sequences.*;
 
 import test.*;
 
@@ -20,17 +20,17 @@ record Album (
     year: UInt,
 );
 
-testRecordSimpleToJson(test) {
+testRecordSimpleToJson() {
     var a = Album(String("Jamaicanization"), 2011u);
     var j = mapToJsonQuick(a);
-    expectEqual(test, "record", JsonObject([title: "Jamaicanization", year: 2011]), j);
+    expectEqual(JsonObject([title: "Jamaicanization", year: 2011]), j);
 }
 
-testRecordSimpleFromJson(test) {
+testRecordSimpleFromJson() {
     var j = JsonObject([title: "Wildhoney", year: 1994]);
     var expected = Album(String("Wildhoney"), 1994u);
-    expectEqual(test, "record", expected, mapFromJsonQuick(Album, j));
-    expectEqual(test, "record", expected, mapFromJsonQuick(Album, JsonValue(j)));
+    expectEqual(expected, mapFromJsonQuick(Album, j));
+    expectEqual(expected, mapFromJsonQuick(Album, JsonValue(j)));
 }
 
 
@@ -44,17 +44,17 @@ record Result (
 overload RecordJsonFieldName(#Result, ##"returnValue") = #"return";
 
 
-testRecordWithCustomStaticFieldNameToJson(test) {
+testRecordWithCustomStaticFieldNameToJson() {
     var r = Result(true, String("yep"));
     var j = mapToJsonQuick(r);
-    expectEqual(test, "record", JsonObject([["successful", true], ["return", "yep"]]), j);
+    expectEqual(JsonObject([["successful", true], ["return", "yep"]]), j);
 }
 
-testRecordWithCustomStaticFieldNameFromJson(test) {
+testRecordWithCustomStaticFieldNameFromJson() {
     var j = JsonObject([["successful", false], ["return", "no"]]);
     var expected = Result(false, String("no"));
-    expectEqual(test, "record", expected, mapFromJsonQuick(Result, j));
-    expectEqual(test, "record", expected, mapFromJsonQuick(Result, JsonValue(j)));
+    expectEqual(expected, mapFromJsonQuick(Result, j));
+    expectEqual(expected, mapFromJsonQuick(Result, JsonValue(j)));
 }
 
 
@@ -66,16 +66,16 @@ record Building (
 
 overload recordJsonFieldName(#Building, #"height") = str("height", size("height"));
 
-testRecordWithCustomDynamicFieldNameToJson(test) {
+testRecordWithCustomDynamicFieldNameToJson() {
     var r = Building(100);
     var j = mapToJsonQuick(r);
-    expectEqual(test, "record", JsonObject([height6: 100]), j);
+    expectEqual(JsonObject([height6: 100]), j);
 }
 
-testRecordWithCustomDynamicFieldNameFromJson(test) {
+testRecordWithCustomDynamicFieldNameFromJson() {
     var j = JsonObject([height6: 22]);
     var expected = Building(22);
-    expectEqual(test, "record", expected, mapFromJsonQuick(Building, j));
+    expectEqual(expected, mapFromJsonQuick(Building, j));
 }
 
 
@@ -88,16 +88,16 @@ record RecordWithTransientField (
 
 overload IncludeRecordJsonField(#RecordWithTransientField, #"colorNumberCache") = false;
 
-testRecordWithExcludedFieldToJson(test) {
+testRecordWithExcludedFieldToJson() {
     var r = RecordWithTransientField(String("red"), 0xff0000);
     var j = mapToJsonQuick(r);
-    expectEqual(test, "record", JsonObject([color: "red"]), j);
+    expectEqual(JsonObject([color: "red"]), j);
 }
 
-testRecordWithExcludedFieldFromJson(test) {
+testRecordWithExcludedFieldFromJson() {
     var j = JsonObject([color: "blue"]);
     var expected = RecordWithTransientField(String("blue"), 0);
-    expectEqual(test, "record", expected, mapFromJsonQuick(RecordWithTransientField, j));
+    expectEqual(expected, mapFromJsonQuick(RecordWithTransientField, j));
 }
 
 
@@ -124,16 +124,16 @@ overload mapRecordFieldFromJson(m: RecordFieldJsonMapperForBar, j, r) {
 overload RecordFieldJsonMapper(#RecordWithCustomFieldSerializer, #"bar") = RecordFieldJsonMapperForBar;
 
 
-testRecordWithCustomFieldSerializerToJson(test) {
+testRecordWithCustomFieldSerializerToJson() {
     var r = RecordWithCustomFieldSerializer(12, String("quantum"));
     var j = mapToJsonQuick(r);
-    expectEqual(test, "record", JsonObject([foo: 12, bar1: "quan", bar2: "tum"]), j);
+    expectEqual(JsonObject([foo: 12, bar1: "quan", bar2: "tum"]), j);
 }
 
-testRecordWithCustomFieldSerializerFromJson(test) {
+testRecordWithCustomFieldSerializerFromJson() {
     var j = JsonObject([foo: 13, bar1: "silv", bar2: "er"]);
     var expected = RecordWithCustomFieldSerializer(13, String("silver"));
-    expectEqual(test, "record", expected, mapFromJsonQuick(RecordWithCustomFieldSerializer, j));
+    expectEqual(expected, mapFromJsonQuick(RecordWithCustomFieldSerializer, j));
 }
 
 
@@ -143,16 +143,16 @@ record RecordWithIntMappedToString (
 
 overload RecordFieldIntermediate(#RecordWithIntMappedToString, #"size") = String;
 
-testRecordWithIntermediateTypeToJson(test) {
+testRecordWithIntermediateTypeToJson() {
     var r = RecordWithIntMappedToString(12);
     var expected = JsonObject([size: "12"]);
-    expectEqual(test, "record", expected, mapToJsonQuick(r));
+    expectEqual(expected, mapToJsonQuick(r));
 }
 
-testRecordWithIntermediateTypeFromJson(test) {
+testRecordWithIntermediateTypeFromJson() {
     var j = JsonObject([size: "13"]);
     var expected = RecordWithIntMappedToString(13);
-    expectEqual(test, "record", expected, mapFromJsonQuick(RecordWithIntMappedToString, j));
+    expectEqual(expected, mapFromJsonQuick(RecordWithIntMappedToString, j));
 }
 
 

@@ -1,0 +1,22 @@
+import json.model.*;
+
+[M]
+JsonMapper?(#M) = CallDefined?(JsonMapperMaps, Static[M]);
+
+[M]
+JsonMapperMapsFrom(#M) = nthValue(#0, ..JsonMapperMaps(M));
+[M]
+JsonMapperMapsTo(#M) = nthValue(#1, ..JsonMapperMaps(M));
+
+[T]
+define JsonMapper(#T);
+
+[M]
+define JsonMapperMaps(#M);
+
+[M, T when JsonMapper?(M) and JsonMapperMapsFrom(M) == T]
+define mapToJson(m: M, t: T);
+
+[M, J when JsonMapper?(M) and JsonAnything?(J)]
+define mapFromJson(m: M, j: J);
+

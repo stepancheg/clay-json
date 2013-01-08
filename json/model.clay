@@ -1,7 +1,7 @@
-import strings.*;
-import vectors.*;
+import data.strings.*;
+import data.vectors.*;
 import printer.*;
-import strings.encodings.utf8.*;
+import data.strings.encodings.utf8.*;
 
 import json.support.decimal.*;
 import json.support.unicode.*;
@@ -37,7 +37,7 @@ record JsonBoolean (
 variant JsonValue (JsonArray, JsonObject, JsonNull, JsonNumber, JsonString, JsonBoolean);
 
 // https://github.com/jckarter/clay/issues/332#issuecomment-7827948
-overload CompareOpDefined?((==), #JsonValue, #JsonValue) = true;
+//overload CompareOpDefined?((==), #JsonValue, #JsonValue) = true;
 
 [J]
 JsonVariantMember?(#J) = VariantMember?(JsonValue, J);

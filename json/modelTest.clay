@@ -1,5 +1,5 @@
-import vectors.*;
-import sequences.*;
+import data.vectors.*;
+import data.sequences.*;
 
 import test.*;
 
@@ -10,106 +10,106 @@ modelTestSuite() =
     TestSuite(
         "json model", array(
             // JsonNumber tests
-            TestCase("Int(JsonNumber)", test => {
-                expectEqual(test, "number", 12, Int(JsonNumber(12)));
-                expectEqual(test, "number", 13l, Int(JsonValue(13l)));
+            TestCase("Int(JsonNumber)", => {
+                expectEqual(12, Int(JsonNumber(12)));
+                expectEqual(13l, Int(JsonValue(13l)));
             }),
-            
+
             // JsonArray tests
-            TestCase("JsonValue(rvalue JsonArray)", test => {
+            TestCase("JsonValue(rvalue JsonArray)", => {
                 var v = JsonValue(JsonArray());
             }),
-            TestCase("JsonValue(lvalue JsonArray)", test => {
+            TestCase("JsonValue(lvalue JsonArray)", => {
                 var a = JsonArray();
                 var v = JsonValue(a);
             }),
-            TestCase("JsonArray empty", test => {
+            TestCase("JsonArray empty", => {
                 var a = JsonArray();
                 var b = a;
-                expectEqual(test, "size", 0, size(b));
+                expectEqual(0, size(b));
             }),
-            TestCase("JsonArray from tuple of elements", test => {
+            TestCase("JsonArray from tuple of elements", => {
                 var a = JsonArray([1, "a", 9]);
                 var b = a;
-                expectEqual(test, "size", 3, size(b));
+                expectEqual(3, size(b));
             }),
-            TestCase("JsonArray from Vector of JsonValue", test => {
+            TestCase("JsonArray from Vector of JsonValue", => {
                 var v = Vector[JsonValue]();
                 push(v, JsonValue(JsonNull()));
                 var a = JsonArray(v);
-                expectEqual(test, "size", 1, size(a));
-                expectTrue(test, "isNull", isNull(a[0]));
+                expectEqual(1, size(a));
+                expectTrue(isNull(a[0]));
             }),
-            TestCase("JsonArray from JsonArray", test => {
+            TestCase("JsonArray from JsonArray", => {
                 var a1 = JsonArray([5, 3]);
                 var a2 = JsonArray(a1);
-                expectEqual(test, "size", 2, size(a2));
-                expectTrue(test, "isNumber", isNumber(a2[0]));
-                expectEqual(test, "5", 5, Int(a2[0]));
+                expectEqual(2, size(a2));
+                expectTrue(isNumber(a2[0]));
+                expectEqual(5, Int(a2[0]));
             }),
-            TestCase("JsonArray from sequence of ints", test => {
+            TestCase("JsonArray from sequence of ints", => {
                 var a = JsonArray(mapped(i -> i + 1, Vector[Int](3, 4, 8)));
-                expectEqual(test, "array", JsonArray([4, 5, 9]), a);
+                expectEqual(JsonArray([4, 5, 9]), a);
             }),
-            TestCase("JsonArray operator[] can be used to set JsonValue", test => {
+            TestCase("JsonArray operator[] can be used to set JsonValue", => {
                 var a = JsonArray([1, "a"]);
                 a[0] = JsonValue("x");
-                expectEqual(test, "string", JsonValue("x"), a[0]);
+                expectEqual(JsonValue("x"), a[0]);
             }),
-            TestCase("JsonArray operator[] can be used to set string", test => {
+            TestCase("JsonArray operator[] can be used to set string", => {
                 var a = JsonArray([1, "a"]);
                 a[0] = "x";
-                expectEqual(test, "string", JsonValue("x"), a[0]);
+                expectEqual(JsonValue("x"), a[0]);
             }),
-            TestCase("getArray can be used to alter data", test => {
+            TestCase("getArray can be used to alter data", => {
                 var a = JsonValue(JsonArray());
                 push(getArray(a), 12);
-                expectEqual(test, "array", JsonValue(JsonArray([12])), a);
+                expectEqual(JsonValue(JsonArray([12])), a);
             }),
             
             // JsonObject tests
-            TestCase("JsonObject from empty key value", test => {
+            TestCase("JsonObject from empty key value", => {
                 var o = JsonObject([]);
             }),
-            TestCase("JsonObject from kvs", test => {
+            TestCase("JsonObject from kvs", => {
                 var o = JsonObject([size: 12, color: "red"]);
-                expectEqual(test, "size", 2, size(o));
+                expectEqual(2, size(o));
             }),
-            TestCase("JsonObject operator[] can be used to set boolean", test => {
+            TestCase("JsonObject operator[] can be used to set boolean", => {
                 var o = JsonObject([distance: 100]);
                 o["distance"] = true;
-                expectEqual(test, "o.d", JsonValue(true), o["distance"]);
+                expectEqual(JsonValue(true), o["distance"]);
             }),
-            TestCase("JsonObject operator. can be used to alter", test => {
+            TestCase("JsonObject operator. can be used to alter", => {
                 var o = JsonObject([status: "green"]);
                 o.status = 2;
-                expectEqual(test, "o.s", JsonValue(2), o["status"]);
+                expectEqual(JsonValue(2), o["status"]);
             }),
             
             // JsonValue tests
-            TestCase("JsonValue contains null by default", test => {
-                expectEqual(test, "null", JsonValue(JsonNull()), JsonValue());
+            TestCase("JsonValue contains null by default", => {
+                expectEqual(JsonValue(JsonNull()), JsonValue());
             }),
-            TestCase("JsonValue constructor from primitives", test => {
+            TestCase("JsonValue constructor from primitives", => {
                 var n = JsonValue(12);
                 var b = JsonValue(true);
                 var s = JsonValue("aaa");
             }),
-            TestCase("JsonValue can be assigned from JsonNumber", test => {
+            TestCase("JsonValue can be assigned from JsonNumber", => {
                 var n = JsonNumber(10);
                 var v = JsonValue();
                 v = n; // lvalue
-                expectEqual(test, "10", JsonValue(JsonNumber(10)), v);
+                expectEqual(JsonValue(JsonNumber(10)), v);
                 v = JsonNumber(12); // rvalue
-                expectEqual(test, "12", JsonValue(JsonNumber(12)), v);
+                expectEqual(JsonValue(JsonNumber(12)), v);
             }),
-            TestCase("JsonValue can be assigned from true", test => {
+            TestCase("JsonValue can be assigned from true", => {
                 var b = true;
                 var v = JsonValue();
                 v = b; // lvalue
-                expectEqual(test, "true", JsonValue(JsonBoolean(true)), v);
+                expectEqual(JsonValue(JsonBoolean(true)), v);
                 v = false; // rvalue
-                expectEqual(test, "false", JsonValue(JsonBoolean(false)), v);
+                expectEqual(JsonValue(JsonBoolean(false)), v);
             }),
         ),
     );

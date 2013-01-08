@@ -1,6 +1,6 @@
-import strings.*;
-import strings.encodings.utf8.*;
-import vectors.*;
+import data.strings.*;
+import data.strings.encodings.utf8.*;
+import data.vectors.*;
 
 
 alias UniString = Vector[UniChar];
@@ -19,8 +19,9 @@ overload UTF8String(s: S) = initializeRecord(UTF8String, String(s));
 
 overload String(u: UTF8String) = u.encoded;
 
+define UniString?(S): Bool;
 
-UniString?(S) = false;
+overload UniString?(S) = false;
 
 [S when String?(S)]
 overload UniString?(#UTF8[S]) = true;

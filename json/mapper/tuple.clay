@@ -1,7 +1,7 @@
 import printer.*;
 
 import json.model.*;
-import json.mapper.*;
+import json.mapper.protocol.*;
 
 
 [T]
